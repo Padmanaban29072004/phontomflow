@@ -25,9 +25,9 @@ class PhantomFlowServer {
   private server: any;
   private io: Server;
   private port: number;
-  private threatDetectionEngine: ThreatDetectionEngine;
-  private deceptionService: DeceptionService;
-  private adaptiveLearningService: AdaptiveLearningService;
+  private threatDetectionEngine!: ThreatDetectionEngine;
+  private deceptionService!: DeceptionService;
+  private adaptiveLearningService!: AdaptiveLearningService;
   private databaseService: DatabaseService;
   private redisService: RedisService;
 
@@ -42,36 +42,13 @@ class PhantomFlowServer {
       }
     });
 
-    // Initialize services
+    // Initialize basic services
     this.databaseService = new DatabaseService();
     this.redisService = new RedisService();
-    this.threatDetectionEngine = new ThreatDetectionEngine();
-    
-    // Initialize deception service with configuration
-    const deceptionConfig: DeceptionConfig = {
-      enabled: process.env.HONEYPOT_ENABLED === 'true',
-      honeypotEndpoints: ['/admin', '/api/admin', '/internal', '/debug'],
-      fakeCredentials: ['admin:admin123', 'root:password', 'test:test123'],
-      decoyFiles: ['config.json', 'database.sql', 'secrets.txt'],
-      trapThreshold: 0.8
-    };
-    this.deceptionService = new DeceptionService(this.redisService, deceptionConfig);
-    
-    // Initialize adaptive learning service with configuration
-    const learningConfig: LearningConfig = {
-      enabled: true,
-      retrainInterval: parseInt(process.env.MODEL_UPDATE_INTERVAL || '60'), // minutes
-      minDataPoints: 100,
-      learningRate: 0.001,
-      batchSize: 32,
-      epochs: 10
-    };
-    this.adaptiveLearningService = new AdaptiveLearningService(this.redisService, learningConfig);
 
     this.initializeMiddleware();
     this.initializeRoutes();
     this.initializeSocketIO();
-    this.initializeThreatDetection();
   }
 
   /**
@@ -243,6 +220,38 @@ class PhantomFlowServer {
   }
 
   /**
+   * Initialize services after database connections
+   */
+  private async initializeServices(): Promise<void> {
+    // Initialize threat detection engine
+    this.threatDetectionEngine = new ThreatDetectionEngine();
+    
+    // Initialize deception service with configuration
+    const deceptionConfig: DeceptionConfig = {
+      enabled: process.env.HONEYPOT_ENABLED === 'true',
+      honeypotEndpoints: ['/admin', '/api/admin', '/internal', '/debug'],
+      fakeCredentials: ['admin:admin123', 'root:password', 'test:test123'],
+      decoyFiles: ['config.json', 'database.sql', 'secrets.txt'],
+      trapThreshold: 0.8
+    };
+    this.deceptionService = new DeceptionService(this.redisService, deceptionConfig);
+    
+    // Initialize adaptive learning service with configuration
+    const learningConfig: LearningConfig = {
+      enabled: true,
+      retrainInterval: parseInt(process.env.MODEL_UPDATE_INTERVAL || '60'), // minutes
+      minDataPoints: 100,
+      learningRate: 0.001,
+      batchSize: 32,
+      epochs: 10
+    };
+    this.adaptiveLearningService = new AdaptiveLearningService(this.redisService, learningConfig);
+
+    // Initialize threat detection system
+    this.initializeThreatDetection();
+  }
+
+  /**
    * Initialize threat detection system
    */
   private initializeThreatDetection(): void {
@@ -316,6 +325,9 @@ class PhantomFlowServer {
           throw redisError;
         }
       }
+
+      // Initialize services after database connection attempts
+      await this.initializeServices();
 
       // Start the server
       this.server.listen(this.port, () => {

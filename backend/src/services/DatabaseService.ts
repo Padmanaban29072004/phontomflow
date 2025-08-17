@@ -10,6 +10,30 @@ export class DatabaseService {
   private isConnected: boolean = false;
   private connection: mongoose.Connection | null = null;
 
+  /**
+   * Check if database is available
+   */
+  public isDatabaseAvailable(): boolean {
+    return this.isConnected && this.connection !== null;
+  }
+
+  /**
+   * Safe operation wrapper for database operations
+   */
+  private async safeOperation<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+    if (!this.isDatabaseAvailable()) {
+      logger.debug('Database not available, using fallback value');
+      return fallback;
+    }
+    
+    try {
+      return await operation();
+    } catch (error) {
+      logger.warn('Database operation failed, using fallback:', error);
+      return fallback;
+    }
+  }
+
   constructor() {
     this.setupEventHandlers();
   }
@@ -102,7 +126,7 @@ export class DatabaseService {
    * Health check for database
    */
   public async healthCheck(): Promise<boolean> {
-    try {
+    return await this.safeOperation(async () => {
       if (!this.isConnected || !mongoose.connection.db) {
         return false;
       }
@@ -110,17 +134,14 @@ export class DatabaseService {
       // Ping the database
       await mongoose.connection.db.admin().ping();
       return true;
-    } catch (error) {
-      logger.error('Database health check failed:', error);
-      return false;
-    }
+    }, false);
   }
 
   /**
    * Get database statistics
    */
   public async getStats(): Promise<any> {
-    try {
+    return await this.safeOperation(async () => {
       if (!this.isConnected || !mongoose.connection.db) {
         throw new Error('Database not connected');
       }
@@ -133,9 +154,12 @@ export class DatabaseService {
         indexes: stats.indexes,
         indexSize: stats.indexSize
       };
-    } catch (error) {
-      logger.error('Failed to get database stats:', error);
-      throw error;
-    }
+    }, {
+      collections: 0,
+      dataSize: 0,
+      storageSize: 0,
+      indexes: 0,
+      indexSize: 0
+    });
   }
 }

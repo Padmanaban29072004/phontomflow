@@ -125,254 +125,191 @@ export class RedisService {
    * Delete a key
    */
   public async del(key: string): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.del(key);
-    } catch (error) {
-      logger.error(`Error deleting Redis key ${key}:`, error);
-      return 0;
-    }
+    }, 0);
   }
 
   /**
    * Check if a key exists
    */
   public async exists(key: string): Promise<boolean> {
-    try {
+    return await this.safeOperation(async () => {
       const result = await this.client.exists(key);
       return result === 1;
-    } catch (error) {
-      logger.error(`Error checking Redis key ${key}:`, error);
-      return false;
-    }
+    }, false);
   }
 
   /**
    * Set expiration time for a key
    */
   public async expire(key: string, seconds: number): Promise<boolean> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.expire(key, seconds);
-    } catch (error) {
-      logger.error(`Error setting expiration for Redis key ${key}:`, error);
-      return false;
-    }
+    }, false);
   }
 
   /**
    * Get time to live for a key
    */
   public async ttl(key: string): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.ttl(key);
-    } catch (error) {
-      logger.error(`Error getting TTL for Redis key ${key}:`, error);
-      return -1;
-    }
+    }, -1);
   }
 
   /**
    * Increment a counter
    */
   public async incr(key: string): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.incr(key);
-    } catch (error) {
-      logger.error(`Error incrementing Redis key ${key}:`, error);
-      throw error;
-    }
+    }, 0);
   }
 
   /**
    * Increment a counter by a specific amount
    */
   public async incrBy(key: string, increment: number): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.incrBy(key, increment);
-    } catch (error) {
-      logger.error(`Error incrementing Redis key ${key} by ${increment}:`, error);
-      throw error;
-    }
+    }, 0);
   }
 
   /**
    * Add to a set
    */
   public async sadd(key: string, ...members: string[]): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.sAdd(key, members);
-    } catch (error) {
-      logger.error(`Error adding to Redis set ${key}:`, error);
-      throw error;
-    }
+    }, 0);
   }
 
   /**
    * Get members of a set
    */
   public async smembers(key: string): Promise<string[]> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.sMembers(key);
-    } catch (error) {
-      logger.error(`Error getting Redis set members for ${key}:`, error);
-      return [];
-    }
+    }, []);
   }
 
   /**
    * Check if member exists in set
    */
   public async sismember(key: string, member: string): Promise<boolean> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.sIsMember(key, member);
-    } catch (error) {
-      logger.error(`Error checking Redis set membership for ${key}:`, error);
-      return false;
-    }
+    }, false);
   }
 
   /**
    * Add to a sorted set
    */
   public async zadd(key: string, score: number, member: string): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.zAdd(key, { score, value: member });
-    } catch (error) {
-      logger.error(`Error adding to Redis sorted set ${key}:`, error);
-      throw error;
-    }
+    }, 0);
   }
 
   /**
    * Get range from sorted set
    */
   public async zrange(key: string, start: number, stop: number): Promise<string[]> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.zRange(key, start, stop);
-    } catch (error) {
-      logger.error(`Error getting Redis sorted set range for ${key}:`, error);
-      return [];
-    }
+    }, []);
   }
 
   /**
    * Get range from sorted set with scores
    */
   public async zrangeWithScores(key: string, start: number, stop: number): Promise<Array<{ score: number; value: string }>> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.zRangeWithScores(key, start, stop);
-    } catch (error) {
-      logger.error(`Error getting Redis sorted set range with scores for ${key}:`, error);
-      return [];
-    }
+    }, []);
   }
 
   /**
    * Push to a list
    */
   public async lpush(key: string, ...values: string[]): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.lPush(key, values);
-    } catch (error) {
-      logger.error(`Error pushing to Redis list ${key}:`, error);
-      throw error;
-    }
+    }, 0);
   }
 
   /**
    * Pop from a list
    */
   public async lpop(key: string): Promise<string | null> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.lPop(key);
-    } catch (error) {
-      logger.error(`Error popping from Redis list ${key}:`, error);
-      return null;
-    }
+    }, null);
   }
 
   /**
    * Get list range
    */
   public async lrange(key: string, start: number, stop: number): Promise<string[]> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.lRange(key, start, stop);
-    } catch (error) {
-      logger.error(`Error getting Redis list range for ${key}:`, error);
-      return [];
-    }
+    }, []);
   }
 
   /**
    * Trim list to specified range
    */
   public async ltrim(key: string, start: number, stop: number): Promise<void> {
-    try {
+    await this.safeOperation(async () => {
       await this.client.lTrim(key, start, stop);
-    } catch (error) {
-      logger.error(`Error trimming Redis list ${key}:`, error);
-      throw error;
-    }
+    }, undefined);
   }
 
   /**
    * Get list length
    */
   public async llen(key: string): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.lLen(key);
-    } catch (error) {
-      logger.error(`Error getting Redis list length for ${key}:`, error);
-      return 0;
-    }
+    }, 0);
   }
 
   /**
    * Set hash field
    */
   public async hset(key: string, field: string, value: string): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.hSet(key, field, value);
-    } catch (error) {
-      logger.error(`Error setting Redis hash field ${key}:${field}:`, error);
-      throw error;
-    }
+    }, 0);
   }
 
   /**
    * Get hash field
    */
   public async hget(key: string, field: string): Promise<string | null> {
-    try {
+    return await this.safeOperation(async () => {
       const result = await this.client.hGet(key, field);
       return result || null;
-    } catch (error) {
-      logger.error(`Error getting Redis hash field ${key}:${field}:`, error);
-      return null;
-    }
+    }, null);
   }
 
   /**
    * Get all hash fields
    */
   public async hgetall(key: string): Promise<Record<string, string>> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.hGetAll(key);
-    } catch (error) {
-      logger.error(`Error getting Redis hash fields for ${key}:`, error);
-      return {};
-    }
+    }, {});
   }
 
   /**
    * Delete hash field
    */
   public async hdel(key: string, ...fields: string[]): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.hDel(key, fields);
-    } catch (error) {
-      logger.error(`Error deleting Redis hash fields for ${key}:`, error);
-      return 0;
-    }
+    }, 0);
   }
 
   /**
@@ -393,38 +330,29 @@ export class RedisService {
    * Flush all data (use with caution)
    */
   public async flushall(): Promise<void> {
-    try {
+    await this.safeOperation(async () => {
       await this.client.flushAll();
       logger.warn('Redis database flushed');
-    } catch (error) {
-      logger.error('Error flushing Redis database:', error);
-      throw error;
-    }
+    }, undefined);
   }
 
   /**
    * Get database info
    */
   public async info(): Promise<string> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.info();
-    } catch (error) {
-      logger.error('Error getting Redis info:', error);
-      return '';
-    }
+    }, '');
   }
 
   /**
    * Get memory usage
    */
   public async memoryUsage(): Promise<number> {
-    try {
+    return await this.safeOperation(async () => {
       const info = await this.client.info('memory');
       const usedMemoryMatch = info.match(/used_memory:(\d+)/);
       return usedMemoryMatch ? parseInt(usedMemoryMatch[1]) : 0;
-    } catch (error) {
-      logger.error('Error getting Redis memory usage:', error);
-      return 0;
-    }
+    }, 0);
   }
 }
