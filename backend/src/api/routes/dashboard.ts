@@ -1,7 +1,39 @@
 import { Router, Request, Response } from 'express';
 import { logger } from '@/utils/logger';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
+
+/**
+ * @route   GET /api/dashboard
+ * @desc    Serve dashboard HTML page
+ * @access  Private
+ */
+router.get('/', async (req: Request, res: Response) => {
+  try {
+    logger.info('Dashboard requested:', { ip: req.ip });
+    
+    const htmlPath = path.join(__dirname, '../dashboard.html');
+    
+    if (fs.existsSync(htmlPath)) {
+      const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+      res.setHeader('Content-Type', 'text/html');
+      res.send(htmlContent);
+    } else {
+      res.status(404).json({
+        success: false,
+        message: 'Dashboard not found'
+      });
+    }
+  } catch (error) {
+    logger.error('Error serving dashboard:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
 
 /**
  * @route   GET /api/dashboard/overview

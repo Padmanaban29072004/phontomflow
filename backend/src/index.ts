@@ -16,6 +16,7 @@ import { threatRoutes } from '@/api/routes/threats';
 import { dashboardRoutes } from '@/api/routes/dashboard';
 import { deceptionRoutes } from '@/api/routes/deception';
 import { metricsRoutes } from '@/api/routes/metrics';
+import { docsRoutes } from '@/api/routes/docs';
 
 // Load environment variables
 dotenv.config();
@@ -140,6 +141,7 @@ class PhantomFlowServer {
     this.app.use('/api/dashboard', dashboardRoutes);
     this.app.use('/api/deception', deceptionRoutes);
     this.app.use('/api/metrics', metricsRoutes);
+    this.app.use('/api/docs', docsRoutes);
 
     // Threat detection middleware for all API routes
     this.app.use('/api/*', async (req, res, next) => {
