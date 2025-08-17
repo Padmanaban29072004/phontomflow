@@ -64,6 +64,30 @@ export class RedisService {
   }
 
   /**
+   * Check if Redis is available
+   */
+  public isRedisAvailable(): boolean {
+    return this._isConnected && this.client.isOpen;
+  }
+
+  /**
+   * Safe operation wrapper for Redis operations
+   */
+  private async safeOperation<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+    if (!this.isRedisAvailable()) {
+      logger.debug('Redis not available, using fallback value');
+      return fallback;
+    }
+    
+    try {
+      return await operation();
+    } catch (error) {
+      logger.warn('Redis operation failed, using fallback:', error);
+      return fallback;
+    }
+  }
+
+  /**
    * Disconnect from Redis
    */
   public async disconnect(): Promise<void> {
@@ -79,28 +103,22 @@ export class RedisService {
    * Set a key-value pair with optional expiration
    */
   public async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
-    try {
+    await this.safeOperation(async () => {
       if (ttlSeconds) {
         await this.client.setEx(key, ttlSeconds, value);
       } else {
         await this.client.set(key, value);
       }
-    } catch (error) {
-      logger.error(`Error setting Redis key ${key}:`, error);
-      throw error;
-    }
+    }, undefined);
   }
 
   /**
    * Get a value by key
    */
   public async get(key: string): Promise<string | null> {
-    try {
+    return await this.safeOperation(async () => {
       return await this.client.get(key);
-    } catch (error) {
-      logger.error(`Error getting Redis key ${key}:`, error);
-      return null;
-    }
+    }, null);
   }
 
   /**

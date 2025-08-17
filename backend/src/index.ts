@@ -278,16 +278,44 @@ class PhantomFlowServer {
    */
   public async start(): Promise<void> {
     try {
-      // Connect to databases
-      await this.databaseService.connect({
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/phantom-flow',
-        options: {
-          maxPoolSize: 10,
-          serverSelectionTimeoutMS: 5000,
-          socketTimeoutMS: 45000,
+      // Check if we're in development mode and databases are not available
+      const isDevelopment = process.env.NODE_ENV === 'development';
+      
+      if (isDevelopment) {
+        logger.info('Running in development mode - attempting to connect to databases...');
+      }
+
+      // Try to connect to databases with fallback
+      try {
+        await this.databaseService.connect({
+          uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/phantom-flow',
+          options: {
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+          }
+        });
+        logger.info('✅ MongoDB connected successfully');
+      } catch (dbError) {
+        if (isDevelopment) {
+          logger.warn('⚠️ MongoDB not available - running in development mode without database');
+          logger.warn('To install MongoDB: https://docs.mongodb.com/manual/installation/');
+        } else {
+          throw dbError;
         }
-      });
-      await this.redisService.connect();
+      }
+
+      try {
+        await this.redisService.connect();
+        logger.info('✅ Redis connected successfully');
+      } catch (redisError) {
+        if (isDevelopment) {
+          logger.warn('⚠️ Redis not available - running in development mode without cache');
+          logger.warn('To install Redis: https://redis.io/download');
+        } else {
+          throw redisError;
+        }
+      }
 
       // Start the server
       this.server.listen(this.port, () => {
@@ -296,6 +324,11 @@ class PhantomFlowServer {
         logger.info(`🔒 Threat detection active`);
         logger.info(`🎭 Deception layer enabled`);
         logger.info(`🧠 Adaptive learning system running`);
+        
+        if (isDevelopment) {
+          logger.info(`🔧 Development mode: Some features may be limited without databases`);
+          logger.info(`📝 Health check: http://localhost:${this.port}/health`);
+        }
       });
 
       // Graceful shutdown handling
