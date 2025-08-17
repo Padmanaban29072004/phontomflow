@@ -45,7 +45,14 @@ export interface TrafficPattern {
 export class StatisticalAnalyzer {
   private redisService: RedisService;
   private trafficCache: Map<string, TrafficPattern[]>;
-  private baselineMetrics: BaselineMetrics;
+  private baselineMetrics: BaselineMetrics = {
+    averageRequestsPerMinute: 0,
+    averageRequestsPerHour: 0,
+    averageUniqueIPs: 0,
+    averageResponseTime: 0,
+    averageErrorRate: 0,
+    standardDeviation: 0
+  };
   private anomalyThreshold: number;
   private timeWindows: number[];
 

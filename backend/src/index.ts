@@ -9,8 +9,8 @@ import { logger } from '@/utils/logger';
 import { DatabaseService } from '@/services/DatabaseService';
 import { RedisService } from '@/services/RedisService';
 import { ThreatDetectionEngine } from '@/core/ThreatDetectionEngine';
-import { DeceptionService } from '@/services/DeceptionService';
-import { AdaptiveLearningService } from '@/services/AdaptiveLearningService';
+import { DeceptionService, DeceptionConfig } from '@/services/DeceptionService';
+import { AdaptiveLearningService, LearningConfig } from '@/services/AdaptiveLearningService';
 import { authRoutes } from '@/api/routes/auth';
 import { threatRoutes } from '@/api/routes/threats';
 import { dashboardRoutes } from '@/api/routes/dashboard';
@@ -46,8 +46,27 @@ class PhantomFlowServer {
     this.databaseService = new DatabaseService();
     this.redisService = new RedisService();
     this.threatDetectionEngine = new ThreatDetectionEngine();
-    this.deceptionService = new DeceptionService();
-    this.adaptiveLearningService = new AdaptiveLearningService();
+    
+    // Initialize deception service with configuration
+    const deceptionConfig: DeceptionConfig = {
+      enabled: process.env.HONEYPOT_ENABLED === 'true',
+      honeypotEndpoints: ['/admin', '/api/admin', '/internal', '/debug'],
+      fakeCredentials: ['admin:admin123', 'root:password', 'test:test123'],
+      decoyFiles: ['config.json', 'database.sql', 'secrets.txt'],
+      trapThreshold: 0.8
+    };
+    this.deceptionService = new DeceptionService(this.redisService, deceptionConfig);
+    
+    // Initialize adaptive learning service with configuration
+    const learningConfig: LearningConfig = {
+      enabled: true,
+      retrainInterval: parseInt(process.env.MODEL_UPDATE_INTERVAL || '60'), // minutes
+      minDataPoints: 100,
+      learningRate: 0.001,
+      batchSize: 32,
+      epochs: 10
+    };
+    this.adaptiveLearningService = new AdaptiveLearningService(this.redisService, learningConfig);
 
     this.initializeMiddleware();
     this.initializeRoutes();
@@ -260,7 +279,14 @@ class PhantomFlowServer {
   public async start(): Promise<void> {
     try {
       // Connect to databases
-      await this.databaseService.connect();
+      await this.databaseService.connect({
+        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/phantom-flow',
+        options: {
+          maxPoolSize: 10,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
+        }
+      });
       await this.redisService.connect();
 
       // Start the server

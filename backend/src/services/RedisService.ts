@@ -3,7 +3,7 @@ import { logger } from '@/utils/logger';
 
 export class RedisService {
   private client: RedisClientType;
-  private isConnected: boolean = false;
+  private _isConnected: boolean = false;
 
   constructor() {
     this.client = createClient({
@@ -28,7 +28,7 @@ export class RedisService {
   private setupEventHandlers(): void {
     this.client.on('connect', () => {
       logger.info('Redis client connected');
-      this.isConnected = true;
+      this._isConnected = true;
     });
 
     this.client.on('ready', () => {
@@ -37,12 +37,12 @@ export class RedisService {
 
     this.client.on('error', (err) => {
       logger.error('Redis client error:', err);
-      this.isConnected = false;
+      this._isConnected = false;
     });
 
     this.client.on('end', () => {
       logger.info('Redis client disconnected');
-      this.isConnected = false;
+      this._isConnected = false;
     });
 
     this.client.on('reconnecting', () => {
@@ -325,7 +325,8 @@ export class RedisService {
    */
   public async hget(key: string, field: string): Promise<string | null> {
     try {
-      return await this.client.hGet(key, field);
+      const result = await this.client.hGet(key, field);
+      return result || null;
     } catch (error) {
       logger.error(`Error getting Redis hash field ${key}:${field}:`, error);
       return null;
@@ -360,7 +361,7 @@ export class RedisService {
    * Check connection status
    */
   public isConnected(): boolean {
-    return this.isConnected;
+    return this._isConnected;
   }
 
   /**

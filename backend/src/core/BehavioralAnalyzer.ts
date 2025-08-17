@@ -132,6 +132,8 @@ export class BehavioralAnalyzer {
   private createNewBehaviorPattern(sessionId: string): BehaviorPattern {
     return {
       sessionId,
+      ipAddress: '',
+      userAgent: '',
       requestPatterns: [],
       timingPatterns: {
         averageTimeBetweenRequests: 0,

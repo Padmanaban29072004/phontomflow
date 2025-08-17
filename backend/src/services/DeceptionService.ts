@@ -301,6 +301,35 @@ export class DeceptionService {
   }
 
   /**
+   * Create deception environment for critical threats
+   */
+  public async createDeceptionEnvironment(assessment: any): Promise<string> {
+    try {
+      const deceptionId = `deception_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const deceptionUrl = `/deception/${deceptionId}`;
+      
+      // Store deception session
+      await this.redisService.set(`deception:session:${deceptionId}`, JSON.stringify({
+        assessment,
+        created: new Date(),
+        ipAddress: assessment.ipAddress,
+        userAgent: assessment.userAgent
+      }), 3600); // 1 hour
+      
+      logger.info('Created deception environment:', {
+        deceptionId,
+        ipAddress: assessment.ipAddress,
+        threatScore: assessment.threatScore
+      });
+      
+      return deceptionUrl;
+    } catch (error) {
+      logger.error('Failed to create deception environment:', error);
+      return '/deception/default';
+    }
+  }
+
+  /**
    * Get active traps
    */
   public getActiveTraps(): Map<string, any> {

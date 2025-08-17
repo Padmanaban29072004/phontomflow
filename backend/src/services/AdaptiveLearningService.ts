@@ -375,6 +375,38 @@ export class AdaptiveLearningService {
   }
 
   /**
+   * Start the adaptive learning service
+   */
+  public async start(): Promise<void> {
+    try {
+      await this.initialize();
+      logger.info('Adaptive learning service started');
+    } catch (error) {
+      logger.error('Failed to start adaptive learning service:', error);
+    }
+  }
+
+  /**
+   * Stop the adaptive learning service
+   */
+  public async stop(): Promise<void> {
+    try {
+      // Clear any ongoing training
+      this.isTraining = false;
+      logger.info('Adaptive learning service stopped');
+    } catch (error) {
+      logger.error('Failed to stop adaptive learning service:', error);
+    }
+  }
+
+  /**
+   * Retrain multiple models (alias for retrainModel)
+   */
+  public async retrainModels(): Promise<void> {
+    await this.retrainModel();
+  }
+
+  /**
    * Clear old training data
    */
   public async clearOldTrainingData(daysOld: number = 7): Promise<void> {
