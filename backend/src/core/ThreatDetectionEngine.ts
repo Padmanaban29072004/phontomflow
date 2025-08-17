@@ -5,11 +5,9 @@ import { BehavioralAnalyzer } from './BehavioralAnalyzer';
 import { StatisticalAnalyzer } from './StatisticalAnalyzer';
 import { RelationshipAnalyzer } from './RelationshipAnalyzer';
 import { ThreatScore } from '@/models/ThreatScore';
-import { UserBehavior } from '@/models/UserBehavior';
-import { NetworkTraffic } from '@/models/NetworkTraffic';
 
 export interface ThreatAssessment {
-  threatScore: number;
+  threatScore: number;  
   confidence: number;
   threatType: string[];
   recommendations: string[];

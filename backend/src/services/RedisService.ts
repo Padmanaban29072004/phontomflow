@@ -285,6 +285,30 @@ export class RedisService {
   }
 
   /**
+   * Trim list to specified range
+   */
+  public async ltrim(key: string, start: number, stop: number): Promise<void> {
+    try {
+      await this.client.lTrim(key, start, stop);
+    } catch (error) {
+      logger.error(`Error trimming Redis list ${key}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get list length
+   */
+  public async llen(key: string): Promise<number> {
+    try {
+      return await this.client.lLen(key);
+    } catch (error) {
+      logger.error(`Error getting Redis list length for ${key}:`, error);
+      return 0;
+    }
+  }
+
+  /**
    * Set hash field
    */
   public async hset(key: string, field: string, value: string): Promise<number> {

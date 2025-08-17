@@ -1,48 +1,61 @@
 # PHANTOM-Flow: Smart Adaptive Defense System
 
-## Overview
+## 🚀 Overview
 
 PHANTOM-Flow is a next-generation cybersecurity platform that combines multiple threat detection perspectives into a single, powerful defense engine. Unlike traditional security tools, PHANTOM-Flow uses closed-loop learning to continuously improve its threat detection capabilities while maintaining optimal performance for legitimate users.
 
-## Key Features
+Instead of relying on just one way of spotting threats, it combines multiple perspectives—statistics, user behavior patterns, and relationship graphs—into a single, powerful defense engine. What makes it different is its closed-loop learning process. Every decision the system makes—whether to slow down traffic, challenge a suspicious user, or divert them into a safe decoy—feeds back into its learning model. Over time, it gets better at telling the difference between a real customer and an attacker, making its actions both faster and more accurate.
+
+The deception layer plays a big role in this strategy. Instead of simply blocking suspicious traffic, PHANTOM-Flow can lead attackers into a fake but convincing environment, letting them waste time while the system quietly records their moves. This gives security teams valuable insight into how attacks work—without putting real data at risk.
+
+## 🎯 Key Features
 
 ### 🛡️ Multi-Perspective Threat Detection
-- **Statistical Analysis**: Real-time traffic pattern analysis
-- **Behavioral Profiling**: User behavior pattern recognition
-- **Relationship Graphs**: Network and user relationship mapping
-- **Adaptive Learning**: Continuous improvement through feedback loops
+- **Statistical Analysis**: Real-time traffic pattern analysis, anomaly detection, baseline learning
+- **Behavioral Profiling**: User behavior pattern recognition, session analysis, interaction monitoring
+- **Relationship Graphs**: Network and user relationship mapping, geographic clustering, coordinated attack detection
+- **Adaptive Learning**: Continuous improvement through feedback loops and model retraining
 
 ### 🎭 Deception Layer
 - **Honeypot Environments**: Convincing fake environments to trap attackers
 - **Attack Pattern Recording**: Silent monitoring of attacker behavior
 - **Threat Intelligence**: Valuable insights without risking real data
+- **Safe Environment Isolation**: Protects real systems from threats
 
 ### ⚡ Performance Optimized
 - **Zero-Latency for Legitimate Users**: Minimal impact on application performance
 - **High Detection Accuracy**: Advanced algorithms reduce false positives
 - **Real-Time Processing**: Instant threat assessment and response
+- **Intelligent Caching**: Optimized resource utilization
 
-## Architecture
+## 🏗️ System Architecture
 
 ```
 PHANTOM-Flow/
 ├── backend/                 # Core defense engine
-│   ├── api/                # REST API endpoints
-│   ├── core/               # Core detection algorithms
-│   ├── models/             # ML models and data structures
-│   └── services/           # Business logic services
+│   ├── src/
+│   │   ├── core/           # Threat detection algorithms
+│   │   │   ├── ThreatDetectionEngine.ts
+│   │   │   ├── BehavioralAnalyzer.ts
+│   │   │   ├── StatisticalAnalyzer.ts
+│   │   │   └── RelationshipAnalyzer.ts
+│   │   ├── services/       # Business logic services
+│   │   ├── api/           # REST API endpoints
+│   │   ├── models/        # Data models
+│   │   └── utils/         # Utility functions
+│   ├── package.json
+│   └── tsconfig.json
 ├── frontend/               # Web dashboard
 │   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/          # Dashboard pages
-│   │   └── services/       # API integration
-│   └── public/             # Static assets
-├── config/                 # Configuration files
-├── docs/                   # Documentation
-└── tests/                  # Test suites
+│   │   ├── components/    # React components
+│   │   ├── pages/         # Dashboard pages
+│   │   ├── services/      # API integration
+│   │   └── contexts/      # React contexts
+│   └── package.json
+└── README.md
 ```
 
-## Technology Stack
+## 🛠️ Technology Stack
 
 ### Backend
 - **Node.js** with Express.js
@@ -64,80 +77,331 @@ PHANTOM-Flow/
 - **Request validation** and sanitization
 - **Comprehensive logging** and monitoring
 
-## Getting Started
+## 📋 Prerequisites
 
-### Prerequisites
-- Node.js 18+ 
-- MongoDB 6+
-- Redis 6+
-- npm or yarn
+Before you begin, ensure you have the following installed:
 
-### Installation
+- **Node.js** (v18 or higher)
+- **npm** or **yarn**
+- **MongoDB** (v6 or higher)
+- **Redis** (v6 or higher)
+- **Git**
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd phantom-flow
-   ```
+### Installing Prerequisites
 
-2. **Install dependencies**
-   ```bash
-   # Install backend dependencies
-   cd backend
-   npm install
-   
-   # Install frontend dependencies
-   cd ../frontend
-   npm install
-   ```
+#### Windows
+```bash
+# Install Node.js from https://nodejs.org/
+# Install MongoDB from https://www.mongodb.com/try/download/community
+# Install Redis from https://github.com/microsoftarchive/redis/releases
+```
 
-3. **Set up environment variables**
-   ```bash
-   # Copy example environment files
-   cp backend/.env.example backend/.env
-   cp frontend/.env.example frontend/.env
-   ```
+#### macOS
+```bash
+# Using Homebrew
+brew install node
+brew install mongodb-community
+brew install redis
+```
 
-4. **Start the development servers**
-   ```bash
-   # Start backend (from backend directory)
-   npm run dev
-   
-   # Start frontend (from frontend directory)
-   npm start
-   ```
+#### Linux (Ubuntu/Debian)
+```bash
+# Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
 
-## Core Components
+# MongoDB
+wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+# Redis
+sudo apt-get install redis-server
+```
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd phantom-flow
+```
+
+### 2. Install Dependencies
+```bash
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+```
+
+### 3. Environment Configuration
+
+#### Backend Environment
+```bash
+cd ../backend
+cp env.example .env
+```
+
+Edit the `.env` file with your configuration:
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=3001
+HOST=localhost
+
+# Database Configuration
+MONGODB_URI=mongodb://localhost:27017/phantom-flow
+REDIS_URL=redis://localhost:6379
+
+# JWT Configuration
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+JWT_EXPIRES_IN=24h
+
+# Security Configuration
+BCRYPT_ROUNDS=12
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# External APIs (Optional)
+THREAT_INTELLIGENCE_API_KEY=your-threat-intelligence-api-key
+GEOIP_API_KEY=your-geoip-api-key
+
+# Logging
+LOG_LEVEL=info
+LOG_FILE_PATH=./logs/phantom-flow.log
+
+# ML Model Configuration
+MODEL_UPDATE_INTERVAL=3600000
+ANOMALY_DETECTION_THRESHOLD=0.8
+BEHAVIOR_ANALYSIS_WINDOW=300000
+
+# Deception Layer
+HONEYPOT_ENABLED=true
+DECEPTION_LEVEL=medium
+ATTACK_RECORDING_ENABLED=true
+
+# Performance Monitoring
+METRICS_ENABLED=true
+PERFORMANCE_MONITORING_INTERVAL=60000
+```
+
+#### Frontend Environment
+```bash
+cd ../frontend
+cp .env.example .env
+```
+
+Edit the `.env` file:
+```env
+REACT_APP_API_URL=http://localhost:3001
+REACT_APP_SOCKET_URL=http://localhost:3001
+REACT_APP_ENVIRONMENT=development
+```
+
+### 4. Database Setup
+
+#### Start MongoDB
+```bash
+# Start MongoDB service
+sudo systemctl start mongod
+# or on macOS
+brew services start mongodb-community
+```
+
+#### Start Redis
+```bash
+# Start Redis service
+sudo systemctl start redis
+# or on macOS
+brew services start redis
+```
+
+### 5. Build and Run
+
+#### Development Mode
+```bash
+# Start backend (from backend directory)
+cd backend
+npm run dev
+
+# Start frontend (from frontend directory)
+cd ../frontend
+npm start
+```
+
+The backend will start on `http://localhost:3001` and the frontend on `http://localhost:3000`
+
+#### Production Mode
+```bash
+# Build for production
+cd backend
+npm run build
+
+cd ../frontend
+npm run build
+
+# Start production server
+cd ../backend
+npm start
+```
+
+## 🔧 Core Components
 
 ### 1. Threat Detection Engine
-- Real-time traffic analysis
-- Behavioral pattern recognition
-- Statistical anomaly detection
-- Machine learning-based classification
+- **Multi-perspective Analysis**: Combines behavioral, statistical, and relationship analysis
+- **Machine Learning**: Neural network-based threat classification
+- **Real-time Processing**: Instant threat assessment and response
+- **Adaptive Learning**: Continuous improvement through feedback loops
 
-### 2. Adaptive Learning System
-- Feedback loop integration
-- Model retraining pipeline
-- Performance metrics tracking
-- Continuous improvement algorithms
+### 2. Behavioral Analyzer
+- **User Behavior Profiling**: Tracks user interaction patterns
+- **Session Analysis**: Monitors session duration and patterns
+- **Anomaly Detection**: Identifies suspicious behavioral patterns
+- **Risk Scoring**: Calculates behavioral risk scores
 
-### 3. Deception Framework
-- Dynamic honeypot generation
-- Attack pattern recording
-- Threat intelligence gathering
-- Safe environment isolation
+### 3. Statistical Analyzer
+- **Traffic Pattern Analysis**: Monitors request patterns and frequencies
+- **Anomaly Detection**: Identifies statistical anomalies
+- **Baseline Learning**: Establishes normal traffic patterns
+- **Performance Metrics**: Tracks system performance
 
-### 4. Performance Optimization
-- Intelligent caching strategies
+### 4. Relationship Analyzer
+- **Network Graph Analysis**: Maps IP and user relationships
+- **Geographic Clustering**: Groups threats by location
+- **Coordinated Attack Detection**: Identifies multi-source attacks
+- **Threat Intelligence**: Correlates with external threat data
+
+### 5. Deception Framework
+- **Honeypot Environments**: Creates convincing fake environments
+- **Attack Recording**: Monitors attacker behavior
+- **Threat Intelligence**: Gathers valuable attack insights
+- **Safe Isolation**: Protects real systems from threats
+
+## 🔒 Security Features
+
+### Authentication & Authorization
+- JWT-based authentication
+- Role-based access control
+- Session management
+- Secure password handling
+
+### Rate Limiting & DDoS Protection
+- Intelligent rate limiting
+- DDoS attack detection
 - Request prioritization
 - Resource allocation optimization
-- Latency monitoring and optimization
 
-## API Documentation
+### Data Protection
+- Request validation and sanitization
+- Input/output filtering
+- Secure data transmission
+- Privacy compliance
 
-The API documentation is available at `/api/docs` when the server is running.
+## 📈 Monitoring & Analytics
 
-## Contributing
+### Real-Time Dashboard
+- Live threat monitoring
+- System performance metrics
+- Geographic threat visualization
+- Attack pattern analysis
+
+### Performance Metrics
+- Response time monitoring
+- Throughput analysis
+- Error rate tracking
+- Resource utilization
+
+### Threat Intelligence
+- Attack pattern correlation
+- Geographic threat mapping
+- Temporal analysis
+- Risk assessment scoring
+
+## 🛠️ Configuration Options
+
+### Threat Detection Sensitivity
+```env
+ANOMALY_DETECTION_THRESHOLD=0.8
+BEHAVIOR_ANALYSIS_WINDOW=300000
+```
+
+### Performance Tuning
+```env
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+PERFORMANCE_MONITORING_INTERVAL=60000
+```
+
+### Deception Settings
+```env
+HONEYPOT_ENABLED=true
+DECEPTION_LEVEL=medium
+ATTACK_RECORDING_ENABLED=true
+```
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+#### Backend Won't Start
+1. Check if MongoDB is running
+2. Verify Redis connection
+3. Check environment variables
+4. Review log files
+
+#### Frontend Connection Issues
+1. Verify backend is running on correct port
+2. Check CORS configuration
+3. Verify API endpoints
+4. Check browser console for errors
+
+#### Database Connection Issues
+1. Verify MongoDB service is running
+2. Check connection string
+3. Verify database permissions
+4. Check network connectivity
+
+### Log Files
+- Backend logs: `backend/logs/`
+- Error logs: `backend/logs/error.log`
+- Combined logs: `backend/logs/combined.log`
+
+### Performance Optimization
+1. Monitor system resources
+2. Adjust rate limiting settings
+3. Optimize database queries
+4. Tune ML model parameters
+
+## 📚 API Documentation
+
+### Authentication Endpoints
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/profile` - Get user profile
+
+### Threat Detection Endpoints
+- `GET /api/threats/recent` - Get recent threats
+- `GET /api/threats/statistics` - Get threat statistics
+- `POST /api/threats/analyze` - Analyze specific request
+
+### Dashboard Endpoints
+- `GET /api/dashboard/metrics` - Get dashboard metrics
+- `GET /api/dashboard/status` - Get system status
+- `GET /api/dashboard/alerts` - Get system alerts
+
+### Deception Endpoints
+- `POST /api/deception/create` - Create deception environment
+- `GET /api/deception/events` - Get deception events
+- `POST /api/deception/record` - Record attack behavior
+
+The API documentation is also available at `/api/docs` when the server is running.
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -145,11 +409,17 @@ The API documentation is available at `/api/docs` when the server is running.
 4. Add tests for new functionality
 5. Submit a pull request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Security
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the troubleshooting guide
+- Contact the development team
 
 For security issues, please email security@phantom-flow.com instead of using the issue tracker.
 

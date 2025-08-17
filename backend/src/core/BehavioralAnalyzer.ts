@@ -1,5 +1,4 @@
 import { logger } from '@/utils/logger';
-import { UserBehavior } from '@/models/UserBehavior';
 import { RedisService } from '@/services/RedisService';
 
 export interface BehaviorPattern {
@@ -8,9 +7,9 @@ export interface BehaviorPattern {
   ipAddress: string;
   userAgent: string;
   requestPatterns: RequestPattern[];
-  timingPatterns: TimingPattern[];
-  navigationPatterns: NavigationPattern[];
-  interactionPatterns: InteractionPattern[];
+  timingPatterns: TimingPattern;
+  navigationPatterns: NavigationPattern;
+  interactionPatterns: InteractionPattern;
   riskIndicators: RiskIndicator[];
   timestamp: Date;
 }
@@ -53,7 +52,7 @@ export interface RiskIndicator {
 export class BehavioralAnalyzer {
   private redisService: RedisService;
   private behaviorCache: Map<string, BehaviorPattern>;
-  private riskThresholds: Map<string, number>;
+  private riskThresholds: Map<string, number> = new Map();
 
   constructor() {
     this.redisService = new RedisService();
