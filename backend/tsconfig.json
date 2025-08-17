@@ -22,6 +22,8 @@
     "moduleResolution": "node",
     "baseUrl": "./src",
     "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "noImplicitReturns": true,
     "paths": {
       "@/*": ["*"],
       "@/core/*": ["core/*"],
@@ -33,7 +35,8 @@
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/types/**/*"
   ],
   "exclude": [
     "node_modules",

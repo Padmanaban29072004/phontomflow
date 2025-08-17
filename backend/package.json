@@ -32,7 +32,7 @@
     "jsonwebtoken": "^9.0.2",
     "bcryptjs": "^2.4.3",
     "socket.io": "^4.7.4",
-    "@tensorflow/tfjs-node": "^4.15.0",
+    "@tensorflow/tfjs": "^4.15.0",
     "winston": "^3.11.0",
     "dotenv": "^16.3.1",
     "joi": "^17.11.0",
@@ -59,7 +59,9 @@
     "@types/jest": "^29.5.8",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.1",
-    "typescript": "^5.3.2"
+    "typescript": "^5.3.2",
+    "@types/geoip-lite": "^1.4.4",
+    "@types/express-session": "^1.17.10"
   },
   "engines": {
     "node": ">=18.0.0"

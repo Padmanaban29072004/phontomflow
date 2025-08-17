@@ -1,4 +1,4 @@
-import * as tf from '@tensorflow/tfjs-node';
+import * as tf from '@tensorflow/tfjs';
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '@/utils/logger';
 import { BehavioralAnalyzer } from './BehavioralAnalyzer';
