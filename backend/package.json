@@ -42,7 +42,7 @@
     "axios": "^1.6.2",
     "geoip-lite": "^1.4.9",
     "user-agents": "^1.0.1355",
-    "fingerprint2": "^2.1.4"
+    "@fingerprintjs/fingerprintjs": "^3.4.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
