@@ -7,14 +7,18 @@ ml_models/* linguist-language=Python
 data_analysis/* linguist-language=Python
 security_tools/* linguist-language=Python
 blockchain_security/* linguist-language=Python
+ai_models/* linguist-language=Python
+quantum_security/* linguist-language=Python
 
-# Force Go detection for backend services (if we add Go files)
+# Force Go detection for backend services
 *.go linguist-language=Go
-backend_services/* linguist-language=Go
+cmd/* linguist-language=Go
+pkg/* linguist-language=Go
+internal/* linguist-language=Go
 
 # Force Rust detection for performance-critical components
 *.rs linguist-language=Rust
-performance_engine/* linguist-language=Rust
+src/* linguist-language=Rust
 
 # Reduce TypeScript/JavaScript detection
 *.ts linguist-detectable=false
