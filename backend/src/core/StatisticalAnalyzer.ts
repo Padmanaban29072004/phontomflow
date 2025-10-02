@@ -1,6 +1,10 @@
 import { logger } from '@/utils/logger';
 import { RedisService } from '@/services/RedisService';
 import { NetworkTraffic } from '@/models/NetworkTraffic';
+import { FrequencyAnalyzer } from '@/services/FrequencyAnalyzer';
+import { SketchAnomalyDetector } from './sketch/SketchAnomalyDetector';
+import { getAnomalyDetectionConfig } from '@/config/sketchConfig';
+import { FrequencyAnalysisResult, SketchAnomalyResult } from '@/types/sketch';
 
 export interface TrafficStatistics {
   totalRequests: number;
@@ -44,6 +48,8 @@ export interface TrafficPattern {
 
 export class StatisticalAnalyzer {
   private redisService: RedisService;
+  private frequencyAnalyzer: FrequencyAnalyzer;
+  private sketchAnomalyDetector: SketchAnomalyDetector;
   private trafficCache: Map<string, TrafficPattern[]>;
   private baselineMetrics: BaselineMetrics = {
     averageRequestsPerMinute: 0,
@@ -61,6 +67,14 @@ export class StatisticalAnalyzer {
     this.trafficCache = new Map();
     this.anomalyThreshold = 0.7;
     this.timeWindows = [60000, 300000, 900000, 3600000]; // 1min, 5min, 15min, 1hour
+    
+    // Initialize frequency analysis components
+    this.frequencyAnalyzer = new FrequencyAnalyzer(this.redisService);
+    this.sketchAnomalyDetector = new SketchAnomalyDetector(
+      this.frequencyAnalyzer,
+      getAnomalyDetectionConfig()
+    );
+    
     this.initializeBaselineMetrics();
   }
 
@@ -508,5 +522,19 @@ export class StatisticalAnalyzer {
    */
   public clearCache(): void {
     this.trafficCache.clear();
+  }
+
+  /**
+   * Get frequency analyzer for external use
+   */
+  public getFrequencyAnalyzer(): FrequencyAnalyzer {
+    return this.frequencyAnalyzer;
+  }
+
+  /**
+   * Get sketch anomaly detector for external use
+   */
+  public getSketchAnomalyDetector(): SketchAnomalyDetector {
+    return this.sketchAnomalyDetector;
   }
 }
