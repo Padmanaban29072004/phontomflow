@@ -6,16 +6,20 @@ export class RedisService {
   private _isConnected: boolean = false;
 
   constructor() {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const maxRetries = isDevelopment ? 3 : 10; // Fewer retries in development
+    
     this.client = createClient({
       url: process.env.REDIS_URL || 'redis://localhost:6379',
       socket: {
         reconnectStrategy: (retries) => {
-          if (retries > 10) {
-            logger.error('Redis connection failed after 10 retries');
+          if (retries > maxRetries) {
+            logger.error(`Redis connection failed after ${maxRetries} retries`);
             return new Error('Redis connection failed');
           }
-          return Math.min(retries * 100, 3000);
+          return Math.min(retries * 200, 2000); // Less aggressive backoff
         },
+        connectTimeout: isDevelopment ? 2000 : 5000, // Shorter timeout in development
       },
     });
 

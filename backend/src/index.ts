@@ -302,15 +302,16 @@ class PhantomFlowServer {
           uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/phantom-flow',
           options: {
             maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
+            serverSelectionTimeoutMS: isDevelopment ? 2000 : 5000, // Shorter timeout in development
             socketTimeoutMS: 45000,
+            connectTimeoutMS: isDevelopment ? 2000 : 10000, // Shorter connect timeout in development
           }
         });
         logger.info('✅ MongoDB connected successfully');
       } catch (dbError) {
         if (isDevelopment) {
           logger.warn('⚠️ MongoDB not available - running in development mode without database');
-          logger.warn('To install MongoDB: https://docs.mongodb.com/manual/installation/');
+          logger.warn('💡 To install MongoDB: https://docs.mongodb.com/manual/installation/');
         } else {
           throw dbError;
         }
@@ -322,7 +323,7 @@ class PhantomFlowServer {
       } catch (redisError) {
         if (isDevelopment) {
           logger.warn('⚠️ Redis not available - running in development mode without cache');
-          logger.warn('To install Redis: https://redis.io/download');
+          logger.warn('💡 To install Redis: https://redis.io/download');
         } else {
           throw redisError;
         }
@@ -342,6 +343,7 @@ class PhantomFlowServer {
         if (isDevelopment) {
           logger.info(`🔧 Development mode: Some features may be limited without databases`);
           logger.info(`📝 Health check: http://localhost:${this.port}/health`);
+          logger.info(`🏠 Server running successfully - Press Ctrl+C to stop`);
         }
       });
 
@@ -362,8 +364,10 @@ class PhantomFlowServer {
     logger.info('🛑 Shutting down PHANTOM-Flow server...');
     
     try {
-      // Stop adaptive learning service
-      this.adaptiveLearningService.stop();
+      // Stop adaptive learning service if it exists
+      if (this.adaptiveLearningService) {
+        await this.adaptiveLearningService.stop();
+      }
       
       // Close database connections
       await this.databaseService.disconnect();
