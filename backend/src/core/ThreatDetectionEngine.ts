@@ -4,7 +4,10 @@ import { logger } from '@/utils/logger';
 import { BehavioralAnalyzer } from './BehavioralAnalyzer';
 import { StatisticalAnalyzer } from './StatisticalAnalyzer';
 import { RelationshipAnalyzer } from './RelationshipAnalyzer';
+import { RiskScoringEngine } from './RiskScoringEngine';
 import { ThreatScore } from '@/models/ThreatScore';
+import { RedisService } from '@/services/RedisService';
+import { RiskContext, ContextualRiskScore, RiskScoringConfig } from '@/types/risk';
 
 export interface ThreatAssessment {
   threatScore: number;  
@@ -19,6 +22,15 @@ export interface ThreatAssessment {
   userAgent: string;
   requestPath: string;
   requestMethod: string;
+  // Enhanced with contextual risk scoring
+  contextualRisk?: ContextualRiskScore;
+  riskContext?: RiskContext;
+  scoringBreakdown?: {
+    behavioral: number;
+    statistical: number;
+    relationship: number;
+    contextualAdjustment: number;
+  };
 }
 
 export interface DetectionMetrics {
@@ -33,14 +45,23 @@ export class ThreatDetectionEngine {
   private behavioralAnalyzer: BehavioralAnalyzer;
   private statisticalAnalyzer: StatisticalAnalyzer;
   private relationshipAnalyzer: RelationshipAnalyzer;
+  private riskScoringEngine: RiskScoringEngine;
   private mlModel: tf.LayersModel | null = null;
   private detectionMetrics: DetectionMetrics;
   private isModelLoaded: boolean = false;
 
-  constructor() {
+  constructor(redisService?: RedisService, riskScoringConfig?: RiskScoringConfig) {
     this.behavioralAnalyzer = new BehavioralAnalyzer();
     this.statisticalAnalyzer = new StatisticalAnalyzer();
     this.relationshipAnalyzer = new RelationshipAnalyzer();
+    
+    // Initialize risk scoring engine with default config if not provided
+    const defaultConfig: RiskScoringConfig = this.getDefaultRiskScoringConfig();
+    this.riskScoringEngine = new RiskScoringEngine(
+      redisService || new (require('@/services/RedisService').RedisService)(),
+      riskScoringConfig || defaultConfig
+    );
+    
     this.detectionMetrics = {
       totalRequests: 0,
       threatsDetected: 0,
@@ -49,6 +70,63 @@ export class ThreatDetectionEngine {
       accuracy: 0
     };
     this.initializeModel();
+  }
+
+  /**
+   * Get default risk scoring configuration
+   */
+  private getDefaultRiskScoringConfig(): RiskScoringConfig {
+    return {
+      weights: {
+        behavioral: 0.4,
+        statistical: 0.3,
+        relationship: 0.3,
+        contextMultipliers: {
+          temporal: {
+            offHours: 1.2,
+            weekend: 1.1,
+            highFrequency: 1.5,
+            nightTime: 1.3
+          },
+          geographic: {
+            highRiskCountry: 1.4,
+            vpnUsage: 1.3,
+            proxyUsage: 1.2,
+            torUsage: 1.8,
+            unknownLocation: 1.1
+          },
+          behavioral: {
+            newUser: 1.1,
+            suspiciousUser: 1.6,
+            botLikeBehavior: 1.8,
+            rapidNavigation: 1.3,
+            inconsistentDevice: 1.2
+          },
+          session: {
+            unauthenticated: 1.2,
+            shortSession: 1.1,
+            highErrorRate: 1.4,
+            privilegedAccount: 0.9,
+            anonymousSession: 1.3
+          },
+          network: {
+            knownThreat: 2.0,
+            datacenterOrigin: 1.2,
+            poorReputation: 1.5,
+            newInfrastructure: 1.1
+          }
+        }
+      },
+      thresholds: {
+        low: 0.3,
+        medium: 0.5,
+        high: 0.7,
+        critical: 0.85
+      },
+      contextSensitivity: 0.7,
+      confidenceThreshold: 0.5,
+      adaptiveLearning: true
+    };
   }
 
   /**
@@ -138,18 +216,26 @@ export class ThreatDetectionEngine {
       const statisticalScore = await this.statisticalAnalyzer.analyze(requestData);
       const relationshipScore = await this.relationshipAnalyzer.analyze(requestData);
       
-      // Combine scores using ML model
-      const combinedScore = await this.combineScores(
-        behavioralScore,
-        statisticalScore,
-        relationshipScore
+      // Use enhanced risk scoring with context
+      const contextualRisk = await this.riskScoringEngine.calculateContextualRisk(
+        {
+          behavioral: behavioralScore,
+          statistical: statisticalScore,
+          relationship: relationshipScore
+        },
+        requestData
       );
       
-      // Generate threat assessment
-      const assessment = this.generateThreatAssessment(
-        combinedScore,
+      // Generate enhanced threat assessment
+      const assessment = this.generateEnhancedThreatAssessment(
+        contextualRisk,
         requestData,
-        startTime
+        startTime,
+        {
+          behavioral: behavioralScore,
+          statistical: statisticalScore,
+          relationship: relationshipScore
+        }
       );
       
       // Update metrics
@@ -157,11 +243,13 @@ export class ThreatDetectionEngine {
       
       // Log threat if detected
       if (assessment.threatScore > 0.7) {
-        logger.warn('Threat detected:', {
+        logger.warn('Enhanced threat detected:', {
           threatScore: assessment.threatScore,
+          contextualScore: contextualRisk.contextualScore,
           riskLevel: assessment.riskLevel,
           ipAddress: assessment.ipAddress,
-          sessionId: assessment.sessionId
+          sessionId: assessment.sessionId,
+          contributingFactors: contextualRisk.contributing_factors.map(f => f.factor)
         });
       }
       
@@ -276,6 +364,40 @@ export class ThreatDetectionEngine {
       userAgent: requestData.userAgent,
       requestPath: requestData.requestPath,
       requestMethod: requestData.requestMethod
+    };
+  }
+
+  /**
+   * Generate enhanced threat assessment with contextual risk scoring
+   */
+  private generateEnhancedThreatAssessment(
+    contextualRisk: ContextualRiskScore,
+    requestData: any,
+    startTime: number,
+    baseScores: { behavioral: number; statistical: number; relationship: number }
+  ): ThreatAssessment {
+    return {
+      threatScore: contextualRisk.contextualScore,
+      confidence: contextualRisk.confidence,
+      threatType: this.identifyThreatTypes(contextualRisk.contextualScore, requestData),
+      recommendations: contextualRisk.recommendations,
+      riskLevel: contextualRisk.riskLevel,
+      timestamp: new Date(),
+      sessionId: requestData.sessionId,
+      userId: requestData.userId,
+      ipAddress: requestData.ipAddress,
+      userAgent: requestData.userAgent,
+      requestPath: requestData.requestPath,
+      requestMethod: requestData.requestMethod,
+      // Enhanced contextual information
+      contextualRisk,
+      riskContext: this.riskScoringEngine.getCachedContext(requestData.sessionId) || undefined,
+      scoringBreakdown: {
+        behavioral: baseScores.behavioral,
+        statistical: baseScores.statistical,
+        relationship: baseScores.relationship,
+        contextualAdjustment: contextualRisk.contextualScore - contextualRisk.baseScore
+      }
     };
   }
 

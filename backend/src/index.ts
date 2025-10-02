@@ -225,8 +225,8 @@ class PhantomFlowServer {
    * Initialize services after database connections
    */
   private async initializeServices(): Promise<void> {
-    // Initialize threat detection engine
-    this.threatDetectionEngine = new ThreatDetectionEngine();
+    // Initialize threat detection engine with enhanced risk scoring
+    this.threatDetectionEngine = new ThreatDetectionEngine(this.redisService);
     
     // Initialize deception service with configuration
     const deceptionConfig: DeceptionConfig = {
