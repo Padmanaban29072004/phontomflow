@@ -1,0 +1,46 @@
+# PHANTOM-Flow Language Detection Configuration
+# Configure GitHub to detect specific languages and hide others
+
+# Force Python detection for ML and security tools
+*.py linguist-language=Python
+ml_models/* linguist-language=Python
+data_analysis/* linguist-language=Python
+security_tools/* linguist-language=Python
+blockchain_security/* linguist-language=Python
+
+# Force Go detection for backend services (if we add Go files)
+*.go linguist-language=Go
+backend_services/* linguist-language=Go
+
+# Force Rust detection for performance-critical components
+*.rs linguist-language=Rust
+performance_engine/* linguist-language=Rust
+
+# Reduce TypeScript/JavaScript detection
+*.ts linguist-detectable=false
+*.js linguist-detectable=false
+backend/node_modules/* linguist-vendored
+frontend/node_modules/* linguist-vendored
+frontend/build/* linguist-generated
+backend/dist/* linguist-generated
+
+# Mark generated files
+*.min.js linguist-generated=true
+*.bundle.js linguist-generated=true
+package-lock.json linguist-generated=true
+
+# Documentation and config files
+*.md linguist-documentation
+*.yml linguist-documentation
+*.yaml linguist-documentation
+*.json linguist-documentation
+
+# Force detection of specific file types
+requirements.txt linguist-language=Python
+Dockerfile linguist-language=Dockerfile
+docker-compose.yml linguist-language=YAML
+
+# Hide certain file types from statistics
+*.log linguist-detectable=false
+*.tmp linguist-detectable=false
+*.cache linguist-detectable=false

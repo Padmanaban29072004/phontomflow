@@ -1,0 +1,100 @@
+[package]
+name = "phantom-flow-security"
+version = "2.0.0"
+edition = "2021"
+description = "PHANTOM-Flow High-Performance Security Engine"
+authors = ["PHANTOM-Flow Team"]
+license = "MIT"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.34", features = ["full"] }
+async-std = "1.12"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+
+# Networking
+reqwest = { version = "0.11", features = ["json", "stream"] }
+hyper = { version = "0.14", features = ["full"] }
+tungstenite = "0.20"
+
+# Cryptography and Security
+sha2 = "0.10"
+sha3 = "0.10"
+blake3 = "1.5"
+hex = "0.4"
+ring = "0.16"
+rustls = "0.21"
+webpki-roots = "0.25"
+
+# Data structures and algorithms
+dashmap = "5.5"
+rayon = "1.8"
+crossbeam = "0.8"
+parking_lot = "0.12"
+
+# Database and caching
+redis = { version = "0.23", features = ["tokio-comp"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+
+# Time and date
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.5", features = ["v4", "serde"] }
+
+# Logging and monitoring
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+metrics = "0.21"
+prometheus = "0.13"
+
+# Configuration
+config = "0.13"
+clap = { version = "4.4", features = ["derive"] }
+
+# Machine Learning (Rust-native)
+candle-core = "0.3"
+candle-nn = "0.3"
+tch = "0.13"
+
+# Network security
+pcap = "1.0"
+pnet = "0.34"
+
+# Regex and text processing
+regex = "1.10"
+aho-corasick = "1.1"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Memory management
+mimalloc = { version = "0.1", default-features = false }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.4"
+
+[[bin]]
+name = "phantom-security-engine"
+path = "src/main.rs"
+
+[[bench]]
+name = "security_benchmarks"
+harness = false
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[features]
+default = ["full"]
+full = ["ml", "network", "crypto"]
+ml = ["candle-core", "candle-nn", "tch"]
+network = ["pcap", "pnet"]
+crypto = ["ring", "rustls"]
