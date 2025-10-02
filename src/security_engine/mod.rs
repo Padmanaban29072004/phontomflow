@@ -15,9 +15,9 @@ use rayon::prelude::*;
 use tokio::time::sleep;
 
 pub mod crypto;
-pub mod analyzer;
-pub mod patterns;
-pub mod metrics;
+
+// Re-export all modules for easy access
+pub use crypto::*;
 
 /// Main security engine providing high-performance threat analysis
 #[derive(Debug)]
