@@ -20,9 +20,13 @@ internal/* linguist-language=Go
 *.rs linguist-language=Rust
 src/* linguist-language=Rust
 
-# Reduce TypeScript/JavaScript detection
-*.ts linguist-detectable=false
-*.js linguist-detectable=false
+# Ensure all languages are properly detected
+*.ts linguist-language=TypeScript
+*.js linguist-language=JavaScript
+backend/src/* linguist-language=TypeScript
+frontend/src/* linguist-language=TypeScript
+
+# Exclude only vendor/generated files from statistics
 backend/node_modules/* linguist-vendored
 frontend/node_modules/* linguist-vendored
 frontend/build/* linguist-generated
@@ -33,11 +37,13 @@ backend/dist/* linguist-generated
 *.bundle.js linguist-generated=true
 package-lock.json linguist-generated=true
 
-# Documentation and config files
+# Documentation and config files (exclude from language statistics)
 *.md linguist-documentation
-*.yml linguist-documentation
-*.yaml linguist-documentation
-*.json linguist-documentation
+*.yml linguist-data
+*.yaml linguist-data
+package.json linguist-data
+tsconfig.json linguist-data
+*.config.js linguist-data
 
 # Force detection of specific file types
 requirements.txt linguist-language=Python
