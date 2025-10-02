@@ -8,6 +8,8 @@ import { RiskScoringEngine } from './RiskScoringEngine';
 import { ThreatScore } from '@/models/ThreatScore';
 import { RedisService } from '@/services/RedisService';
 import { RiskContext, ContextualRiskScore, RiskScoringConfig } from '@/types/risk';
+import { ResponseEngine } from '@/core/response/ResponseEngine';
+import { ResponseExecutionResult } from '@/types/response';
 
 export interface ThreatAssessment {
   threatScore: number;  
@@ -31,6 +33,8 @@ export interface ThreatAssessment {
     relationship: number;
     contextualAdjustment: number;
   };
+  // Graduated response system
+  responseExecution?: ResponseExecutionResult;
 }
 
 export interface DetectionMetrics {
@@ -46,6 +50,7 @@ export class ThreatDetectionEngine {
   private statisticalAnalyzer: StatisticalAnalyzer;
   private relationshipAnalyzer: RelationshipAnalyzer;
   private riskScoringEngine: RiskScoringEngine;
+  private responseEngine: ResponseEngine;
   private mlModel: tf.LayersModel | null = null;
   private detectionMetrics: DetectionMetrics;
   private isModelLoaded: boolean = false;
@@ -57,10 +62,15 @@ export class ThreatDetectionEngine {
     
     // Initialize risk scoring engine with default config if not provided
     const defaultConfig: RiskScoringConfig = this.getDefaultRiskScoringConfig();
+    const redisServiceInstance = redisService || new (require('@/services/RedisService').RedisService)();
     this.riskScoringEngine = new RiskScoringEngine(
-      redisService || new (require('@/services/RedisService').RedisService)(),
+      redisServiceInstance,
       riskScoringConfig || defaultConfig
     );
+    
+    // Initialize response engine
+    const responseConfig = require('@/config/responseConfig').getResponseConfiguration();
+    this.responseEngine = new ResponseEngine(responseConfig, redisServiceInstance);
     
     this.detectionMetrics = {
       totalRequests: 0,
@@ -241,6 +251,18 @@ export class ThreatDetectionEngine {
       // Update metrics
       this.updateMetrics(assessment, Date.now() - startTime);
       
+      // Execute graduated response based on risk score
+      const responseExecution = await this.responseEngine.executeResponse(
+        req,
+        res,
+        contextualRisk.contextualScore,
+        assessment.sessionId,
+        assessment.userId
+      );
+      
+      // Add response execution to assessment
+      assessment.responseExecution = responseExecution;
+      
       // Log threat if detected
       if (assessment.threatScore > 0.7) {
         logger.warn('Enhanced threat detected:', {
@@ -249,7 +271,9 @@ export class ThreatDetectionEngine {
           riskLevel: assessment.riskLevel,
           ipAddress: assessment.ipAddress,
           sessionId: assessment.sessionId,
-          contributingFactors: contextualRisk.contributing_factors.map(f => f.factor)
+          contributingFactors: contextualRisk.contributing_factors.map(f => f.factor),
+          responseActions: responseExecution.actionsExecuted,
+          responseSuccess: responseExecution.success
         });
       }
       
