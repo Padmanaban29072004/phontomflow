@@ -231,7 +231,7 @@ export class DataRetentionService {
       
       const countResult = await this.influxDB.query(countQuery);
       const recordCount = countResult.success && countResult.data.length > 0 
-        ? countResult.data[0].record_count 
+        ? (countResult.data[0] as any).record_count 
         : 0;
 
       if (recordCount === 0) {
@@ -331,8 +331,8 @@ export class DataRetentionService {
       // This is a simplified implementation
       // In a real scenario, you'd parse the stats more thoroughly
       for (const stat of stats) {
-        if (stat.series) {
-          for (const series of stat.series) {
+        if ((stat as any).series) {
+          for (const series of (stat as any).series) {
             if (series.name && series.values) {
               const measurementName = series.name;
               const size = series.values[0]?.[1] || 0; // Approximate size
@@ -473,7 +473,7 @@ export class DataRetentionService {
       
       const countResult = await this.influxDB.query(countQuery);
       const recordCount = countResult.success && countResult.data.length > 0 
-        ? countResult.data[0].record_count 
+        ? (countResult.data[0] as any).record_count 
         : 0;
 
       if (recordCount === 0) {
