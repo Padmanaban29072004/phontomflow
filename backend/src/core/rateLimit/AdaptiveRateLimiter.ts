@@ -411,7 +411,7 @@ export class AdaptiveRateLimiter {
         profileUpdated: new Date()
       };
 
-      await this.redisService.setex(key, 3600, JSON.stringify(newProfile));
+      await this.redisService.set(key, JSON.stringify(newProfile), 3600);
       return newProfile;
     } catch (error) {
       logger.warn('Failed to get user profile', { error });
@@ -481,10 +481,10 @@ export class AdaptiveRateLimiter {
       
       // Update Redis with TTL
       const ttl = Math.ceil(this.config.timeWindowMs / 1000) + 60; // Window + buffer
-      await this.redisService.setex(
+      await this.redisService.set(
         `rate_limit_state:${identifier}`,
-        ttl,
-        JSON.stringify(state)
+        JSON.stringify(state),
+        ttl
       );
     } catch (error) {
       logger.warn('Failed to update state', { error });
