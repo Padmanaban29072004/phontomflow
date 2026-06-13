@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authApi, TOKEN_KEY, type AuthResponse } from '../services/api'
+import { authApi, TOKEN_KEY } from '../services/api'
 import toast from 'react-hot-toast'
 
 interface User {
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     authApi.verify()
       .then((res) => {
         if (res.data.success) {
-          setUser(res.data.data.user)
+          setUser(res.data.user)
         } else {
           localStorage.removeItem(TOKEN_KEY)
           setToken(null)
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await authApi.login(username, password)
-    const { token: newToken, user: userData }: AuthResponse = res.data.data
+    const { token: newToken, user: userData } = res.data
 
     localStorage.setItem(TOKEN_KEY, newToken)
     setToken(newToken)

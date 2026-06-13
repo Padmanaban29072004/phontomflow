@@ -36,6 +36,8 @@ export interface ApiResponse<T> {
 export interface AuthResponse {
   token: string
   user: { id: string; username: string; role: string }
+  success: boolean
+  message?: string
 }
 
 export interface Threat {
@@ -166,9 +168,9 @@ export interface AnalyticsMetrics {
 
 export const authApi = {
   login: (username: string, password: string) =>
-    api.post<ApiResponse<AuthResponse>>('/auth/login', { username, password }),
-  logout: () => api.post<ApiResponse<null>>('/auth/logout'),
-  verify: () => api.get<ApiResponse<{ user: AuthResponse['user'] }>>('/auth/verify'),
+    api.post<AuthResponse>('/auth/login', { username, password }),
+  logout: () => api.post<{ success: boolean; message?: string }>('/auth/logout'),
+  verify: () => api.get<{ success: boolean; message?: string; user: { id: string; username: string; role: string } }>('/auth/verify'),
 }
 
 export const threatsApi = {
