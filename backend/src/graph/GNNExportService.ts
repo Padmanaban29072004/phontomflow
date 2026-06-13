@@ -79,7 +79,7 @@ export class GNNExportService {
 
       const edgeResult = await this.neo4j.readQuery(`
         MATCH (a)-[r]->(b)
-        RETURN a.elementId() as fromId, b.elementId() as toId
+        RETURN elementId(a) as fromId, elementId(b) as toId
         LIMIT 5000
       `);
 

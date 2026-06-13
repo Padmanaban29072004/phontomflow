@@ -86,11 +86,12 @@ export class IPRepository {
     if (!this.neo4j.isConnected()) return [];
 
     try {
+      const clampedDepth = Math.max(1, Math.min(5, depth));
       const result = await this.neo4j.readQuery(
-        `MATCH path = (ip:IP {address: $ipAddress})-[*1..$depth]-(connected)
+        `MATCH path = (ip:IP {address: $ipAddress})-[*1..${clampedDepth}]-(connected)
          RETURN path
          LIMIT 100`,
-        { ipAddress, depth }
+        { ipAddress }
       );
       return result.records;
     } catch (error) {

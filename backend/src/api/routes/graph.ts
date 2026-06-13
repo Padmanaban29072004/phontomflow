@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { int } from 'neo4j-driver';
 import { Neo4jService } from '@/graph/Neo4jService';
 import { UserRepository } from '@/graph/repositories/UserRepository';
 import { SessionRepository } from '@/graph/repositories/SessionRepository';
@@ -70,8 +71,8 @@ export function createGraphRouter(neo4j: Neo4jService): Router {
 
       const whereClauses: string[] = [];
       const params: Record<string, unknown> = {
-        limit: parseInt(limit as string) || 100,
-        offset: parseInt(offset as string) || 0,
+        limit: int(parseInt(limit as string) || 100),
+        offset: int(parseInt(offset as string) || 0),
       };
 
       for (const [key, value] of Object.entries(filters)) {
@@ -108,19 +109,23 @@ export function createGraphRouter(neo4j: Neo4jService): Router {
       const allowedTypes = ['USED', 'CONNECTED_TO', 'ATTACKED', 'ACCESSED', 'IMPERSONATED', 'ORIGINATED_FROM'];
 
       let query: string;
-      const params = { limit: parseInt(limit as string), offset: parseInt(offset as string) };
+      const params = { limit: int(parseInt(limit as string)), offset: int(parseInt(offset as string)) };
 
       if (type && allowedTypes.includes(type as string)) {
-        query = `MATCH ()-[r:${type}]->() RETURN r SKIP $offset LIMIT $limit`;
+        query = `MATCH (a)-[r:${type}]->(b) RETURN elementId(a) as source, elementId(b) as target, labels(a)[0] as sourceType, labels(b)[0] as targetType, r SKIP $offset LIMIT $limit`;
       } else {
-        query = `MATCH ()-[r]->() RETURN r SKIP $offset LIMIT $limit`;
+        query = `MATCH (a)-[r]->(b) RETURN elementId(a) as source, elementId(b) as target, labels(a)[0] as sourceType, labels(b)[0] as targetType, r SKIP $offset LIMIT $limit`;
       }
 
       const result = await neo4j.readQuery(query, params);
-      const relationships = result.records.map((r) => ({
-        id: r.get('r').elementId,
-        type: r.get('r').type,
-        properties: r.get('r').properties,
+      const relationships = result.records.map((rec) => ({
+        id: rec.get('r').elementId,
+        type: rec.get('r').type,
+        source: rec.get('source'),
+        target: rec.get('target'),
+        sourceType: rec.get('sourceType'),
+        targetType: rec.get('targetType'),
+        properties: rec.get('r').properties,
       }));
 
       res.json({ success: true, data: relationships });
