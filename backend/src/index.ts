@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -18,6 +18,8 @@ import { deceptionRoutes } from '@/api/routes/deception';
 import { metricsRoutes } from '@/api/routes/metrics';
 import { docsRoutes } from '@/api/routes/docs';
 import { influxdbRoutes } from '@/api/routes/influxdb';
+import { Neo4jService } from '@/graph/Neo4jService';
+import { createGraphRouter } from '@/api/routes/graph';
 
 // Load environment variables
 dotenv.config();
@@ -32,6 +34,8 @@ class PhantomFlowServer {
   private adaptiveLearningService!: AdaptiveLearningService;
   private databaseService: DatabaseService;
   private redisService: RedisService;
+  private neo4jService: Neo4jService;
+  private graphRoutes!: Router;
 
   constructor() {
     this.port = parseInt(process.env.PORT || '3001');
@@ -47,10 +51,12 @@ class PhantomFlowServer {
     // Initialize basic services
     this.databaseService = new DatabaseService();
     this.redisService = new RedisService();
+    this.neo4jService = new Neo4jService();
 
     this.initializeMiddleware();
     this.initializeRoutes();
     this.initializeSocketIO();
+    this.initializeGraphRoutes();
   }
 
   /**
@@ -287,6 +293,21 @@ class PhantomFlowServer {
   }
 
   /**
+   * Initialize graph routes (lazy — called after Neo4j connection attempt)
+   */
+  private initializeGraphRoutes(): void {
+    this.graphRoutes = createGraphRouter(this.neo4jService);
+  }
+
+  /**
+   * Mount graph routes after Neo4j connection
+   */
+  private mountGraphRoutes(): void {
+    this.app.use('/api/graph', this.graphRoutes);
+    logger.info('📊 Graph API routes mounted at /api/graph');
+  }
+
+  /**
    * Start the server
    */
   public async start(): Promise<void> {
@@ -331,6 +352,24 @@ class PhantomFlowServer {
         }
       }
 
+      try {
+        await this.neo4jService.connect();
+        if (this.neo4jService.isConnected()) {
+          await this.neo4jService.createIndexes();
+          logger.info('✅ Neo4j connected successfully');
+        }
+      } catch (neo4jError) {
+        if (isDevelopment) {
+          logger.warn('⚠️ Neo4j not available - graph features use in-memory fallback');
+          logger.warn('💡 To start Neo4j: docker compose up -d neo4j');
+        } else {
+          throw neo4jError;
+        }
+      }
+
+      // Mount graph routes after Neo4j connection is attempted
+      this.mountGraphRoutes();
+
       // Initialize services after database connection attempts
       await this.initializeServices();
 
@@ -374,6 +413,7 @@ class PhantomFlowServer {
       // Close database connections
       await this.databaseService.disconnect();
       await this.redisService.disconnect();
+      await this.neo4jService.disconnect();
       
       // Close server
       this.server.close(() => {
