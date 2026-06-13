@@ -56,9 +56,9 @@ class PhantomFlowServer {
     this.neo4jService = new Neo4jService();
 
     this.initializeMiddleware();
+    this.initializeGraphRoutes();
     this.initializeRoutes();
     this.initializeSocketIO();
-    this.initializeGraphRoutes();
   }
 
   /**
@@ -205,6 +205,10 @@ class PhantomFlowServer {
       }
     });
 
+    // Mount graph routes (before 404 handler)
+    this.app.use('/api/graph', this.graphRoutes);
+    logger.info('📊 Graph API routes mounted at /api/graph');
+
     // 404 handler
     this.app.use('*', (req, res) => {
       res.status(404).json({
@@ -325,14 +329,6 @@ class PhantomFlowServer {
   }
 
   /**
-   * Mount graph routes after Neo4j connection
-   */
-  private mountGraphRoutes(): void {
-    this.app.use('/api/graph', this.graphRoutes);
-    logger.info('📊 Graph API routes mounted at /api/graph');
-  }
-
-  /**
    * Start the server
    */
   public async start(): Promise<void> {
@@ -392,10 +388,7 @@ class PhantomFlowServer {
         }
       }
 
-      // Mount graph routes after Neo4j connection is attempted
-      this.mountGraphRoutes();
-
-      // Initialize services after database connection attempts
+        // Initialize services after database connection attempts
       await this.initializeServices();
 
       // Start the server
