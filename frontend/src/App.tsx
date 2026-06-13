@@ -12,7 +12,6 @@ import { DeceptionPage } from './pages/DeceptionPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import './App.css';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
