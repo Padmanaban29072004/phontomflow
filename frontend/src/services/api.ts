@@ -202,5 +202,85 @@ export const metricsApi = {
   realtime: () => api.get<ApiResponse<Record<string, unknown>>>('/metrics/real-time'),
 }
 
+export interface GraphNode {
+  id: string
+  labels: string[]
+  properties: Record<string, unknown>
+}
+
+export interface GraphRelationship {
+  id: string
+  type: string
+  source?: string
+  target?: string
+  sourceType?: string
+  targetType?: string
+  properties: Record<string, unknown>
+}
+
+export interface GraphStats {
+  nodeCounts: Record<string, number>
+  relationshipCounts: Record<string, number>
+  totalNodes: number
+  totalRelationships: number
+}
+
+export interface CredentialStuffingResult {
+  userId: string
+  username: string
+  sessionCount: number
+  ipCount: number
+  suspiciousSessions: number
+  ipRatio: number
+  threatScore: number
+}
+
+export interface BotnetResult {
+  deviceId: string
+  relatedDeviceId: string
+  ipCount: number
+  ips: string[]
+  threatScore: number
+}
+
+export interface LateralMovementResult {
+  userId: string
+  username: string
+  resources: string[]
+  hopCount: number
+  threatScore: number
+}
+
+export interface ThreatReport {
+  summary: {
+    totalThreats: number
+    averageScore: number
+    criticalCount: number
+    highCount: number
+  }
+  credentialStuffing: CredentialStuffingResult[]
+  botnets: BotnetResult[]
+  lateralMovement: LateralMovementResult[]
+}
+
+export const graphApi = {
+  health: () => api.get<{ connected: boolean; stats: GraphStats | null }>('/graph/health'),
+  stats: () => api.get<GraphStats>('/graph/stats'),
+  nodes: (type: string, params?: Record<string, string>) =>
+    api.get<GraphNode[]>(`/graph/nodes/${type}`, { params }),
+  relationships: (type?: string) =>
+    api.get<GraphRelationship[]>('/graph/relationships', { params: { type, limit: '500' } }),
+  query: (cypher: string) =>
+    api.post<Record<string, unknown>[]>('/graph/query', { cypher }),
+  threatReport: () => api.get<ThreatReport>('/graph/threats/report'),
+  credentialStuffing: () =>
+    api.get<CredentialStuffingResult[]>('/graph/threats/credential-stuffing'),
+  botnets: () => api.get<BotnetResult[]>('/graph/threats/botnets'),
+  lateralMovement: () =>
+    api.get<LateralMovementResult[]>('/graph/threats/lateral-movement'),
+  exportGraph: (framework: 'pyg' | 'dgl' | 'tf-gnn') =>
+    api.get(`/graph/export/${framework}`),
+}
+
 export { TOKEN_KEY }
 export default api

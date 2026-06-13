@@ -11,6 +11,7 @@ import { ThreatsPage } from './pages/ThreatsPage';
 import { DeceptionPage } from './pages/DeceptionPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { GraphPage } from './pages/GraphPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Create a client for React Query
@@ -47,6 +48,7 @@ function App() {
                   <Route path="deception" element={<DeceptionPage />} />
                   <Route path="analytics" element={<AnalyticsPage />} />
                   <Route path="settings" element={<SettingsPage />} />
+                  <Route path="graph" element={<GraphPage />} />
                 </Route>
                 
                 {/* Catch all route */}
