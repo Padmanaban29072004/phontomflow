@@ -42,23 +42,28 @@ export class DatabaseService {
    * Initialize database connection
    */
   public async connect(config: DatabaseConfig): Promise<void> {
-    try {
-      if (this.isConnected) {
-        logger.info('Database already connected');
-        return;
-      }
+    if (this.isConnected) {
+      logger.info('Database already connected');
+      return;
+    }
 
-      logger.info('Connecting to database...');
-      
+    logger.info('Connecting to database...');
+
+    try {
       await mongoose.connect(config.uri, config.options);
-      
+
       this.connection = mongoose.connection;
       this.isConnected = true;
-      
+
       logger.info('Database connected successfully');
     } catch (error) {
-      logger.error('Database connection failed:', error);
-      throw error;
+      const isDev = process.env.NODE_ENV === 'development';
+      if (isDev) {
+        logger.warn('MongoDB not available — running in development mode without database');
+      } else {
+        logger.error('Database connection failed:', error);
+        throw error;
+      }
     }
   }
 
@@ -107,7 +112,9 @@ export class DatabaseService {
     });
 
     mongoose.connection.on('error', (error) => {
-      logger.error('Mongoose connection error:', error);
+      if (process.env.NODE_ENV !== 'development') {
+        logger.error('Mongoose connection error:', error);
+      }
       this.isConnected = false;
     });
 

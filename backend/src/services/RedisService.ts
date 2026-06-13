@@ -14,7 +14,9 @@ export class RedisService {
       socket: {
         reconnectStrategy: (retries) => {
           if (retries > maxRetries) {
-            logger.error(`Redis connection failed after ${maxRetries} retries`);
+            if (!isDevelopment) {
+              logger.error(`Redis connection failed after ${maxRetries} retries`);
+            }
             return new Error('Redis connection failed');
           }
           return Math.min(retries * 200, 2000); // Less aggressive backoff
@@ -40,7 +42,10 @@ export class RedisService {
     });
 
     this.client.on('error', (err) => {
-      logger.error('Redis client error:', err);
+      const isDev = process.env.NODE_ENV === 'development';
+      if (!isDev) {
+        logger.error('Redis client error:', err);
+      }
       this._isConnected = false;
     });
 
@@ -50,7 +55,9 @@ export class RedisService {
     });
 
     this.client.on('reconnecting', () => {
-      logger.info('Redis client reconnecting...');
+      if (process.env.NODE_ENV !== 'development') {
+        logger.info('Redis client reconnecting...');
+      }
     });
   }
 
@@ -62,7 +69,10 @@ export class RedisService {
       await this.client.connect();
       logger.info('Redis connection established');
     } catch (error) {
-      logger.error('Failed to connect to Redis:', error);
+      const isDev = process.env.NODE_ENV === 'development';
+      if (!isDev) {
+        logger.error('Failed to connect to Redis:', error);
+      }
       throw error;
     }
   }
