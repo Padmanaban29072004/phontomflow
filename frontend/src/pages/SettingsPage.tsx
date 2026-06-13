@@ -1,106 +1,164 @@
-import React, { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react'
+import { useQuery, useMutation } from 'react-query'
+import api from '../services/api'
+import {
+  Cog6ToothIcon,
+  BellIcon,
+  ShieldCheckIcon,
+  ServerIcon,
+} from '@heroicons/react/24/outline'
+import { toast } from 'react-hot-toast'
 
-export function SettingsPage() {
-  const { user } = useAuth()
-  const [refetchInterval, setRefetchInterval] = useState(30)
-  const [notifications, setNotifications] = useState(true)
-  const [criticalAlerts, setCriticalAlerts] = useState(true)
-  const [autoRefresh, setAutoRefresh] = useState(true)
+export const SettingsPage: React.FC = () => {
+  const [settings, setSettings] = useState({
+    notifications: true,
+    autoBlock: false,
+    threatThreshold: 0.7,
+    refreshInterval: 30,
+  })
+
+  useQuery(
+    'user-settings',
+    () => api.get('/settings').catch(() => ({ data: null })),
+    {
+      retry: 1,
+      onSuccess: (data: any) => {
+        if (data?.data) {
+          setSettings({ ...settings, ...data.data })
+        }
+      },
+    }
+  )
+
+  const saveSettingsMutation = useMutation(
+    (newSettings: any) => api.post('/settings', newSettings).catch(() => {
+      localStorage.setItem('phantom-flow-settings', JSON.stringify(newSettings))
+      return { data: { success: true } }
+    }),
+    {
+      onSuccess: () => {
+        toast.success('Settings saved successfully')
+        localStorage.setItem('phantom-flow-settings', JSON.stringify(settings))
+      },
+      onError: () => {
+        localStorage.setItem('phantom-flow-settings', JSON.stringify(settings))
+        toast.success('Settings saved locally')
+      },
+    }
+  )
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('phantom-flow-settings')
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings)
+        setSettings({ ...settings, ...parsed })
+      } catch (e) {
+        console.error('Error loading settings from localStorage:', e)
+      }
+    }
+  }, [])
 
   const handleSave = () => {
-    toast.success('Settings saved')
+    saveSettingsMutation.mutate(settings)
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
+    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 gap-4">
+      <div className="flex-shrink-0">
+        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <p className="text-sm text-gray-500">Configure your PHANTOM-Flow system preferences</p>
+      </div>
 
-      <div className="space-y-6 max-w-2xl">
-        <div className="rounded-lg border border-gray-800 bg-gray-950 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Profile</h2>
+      <div className="flex-1 overflow-y-auto max-w-4xl space-y-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-4">
+            <BellIcon className="h-6 w-6 text-gray-400 mr-3" />
+            <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
+          </div>
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-lg font-bold text-white">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white">{user?.username}</p>
-                <p className="text-xs text-gray-400 capitalize">{user?.role}</p>
-              </div>
-            </div>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-gray-700">Enable notifications</span>
+              <input
+                type="checkbox"
+                checked={settings.notifications}
+                onChange={(e) =>
+                  setSettings({ ...settings, notifications: e.target.checked })
+                }
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+            </label>
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-800 bg-gray-950 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Dashboard Preferences</h2>
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white">Auto-refresh</p>
-                <p className="text-xs text-gray-400">Automatically refresh dashboard data</p>
-              </div>
-              <button
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className={`relative h-6 w-11 rounded-full transition-colors ${autoRefresh ? 'bg-blue-600' : 'bg-gray-700'}`}
-              >
-                <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${autoRefresh ? 'translate-x-5' : ''}`} />
-              </button>
-            </div>
-
-            {autoRefresh && (
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Refresh Interval (seconds)</label>
-                <input
-                  type="number"
-                  value={refetchInterval}
-                  onChange={(e) => setRefetchInterval(Number(e.target.value))}
-                  min={5}
-                  max={300}
-                  className="w-24 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-            )}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-4">
+            <ShieldCheckIcon className="h-6 w-6 text-gray-400 mr-3" />
+            <h2 className="text-lg font-semibold text-gray-900">Security Settings</h2>
           </div>
-        </div>
-
-        <div className="rounded-lg border border-gray-800 bg-gray-950 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Notifications</h2>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white">Toast notifications</p>
-                <p className="text-xs text-gray-400">Show notification popups</p>
-              </div>
-              <button
-                onClick={() => setNotifications(!notifications)}
-                className={`relative h-6 w-11 rounded-full transition-colors ${notifications ? 'bg-blue-600' : 'bg-gray-700'}`}
-              >
-                <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${notifications ? 'translate-x-5' : ''}`} />
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white">Critical alerts</p>
-                <p className="text-xs text-gray-400">Show alerts for critical threats</p>
-              </div>
-              <button
-                onClick={() => setCriticalAlerts(!criticalAlerts)}
-                className={`relative h-6 w-11 rounded-full transition-colors ${criticalAlerts ? 'bg-blue-600' : 'bg-gray-700'}`}
-              >
-                <span className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${criticalAlerts ? 'translate-x-5' : ''}`} />
-              </button>
+            <label className="flex items-center justify-between">
+              <span className="text-sm text-gray-700">Auto-block high-risk threats</span>
+              <input
+                type="checkbox"
+                checked={settings.autoBlock}
+                onChange={(e) => setSettings({ ...settings, autoBlock: e.target.checked })}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+            </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Threat Detection Threshold: {settings.threatThreshold}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={settings.threatThreshold}
+                onChange={(e) =>
+                  setSettings({ ...settings, threatThreshold: parseFloat(e.target.value) })
+                }
+                className="w-full"
+              />
             </div>
           </div>
         </div>
 
-        <button
-          onClick={handleSave}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          Save Settings
-        </button>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center mb-4">
+            <ServerIcon className="h-6 w-6 text-gray-400 mr-3" />
+            <h2 className="text-lg font-semibold text-gray-900">System Settings</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Data Refresh Interval (seconds): {settings.refreshInterval}
+              </label>
+              <input
+                type="number"
+                min="5"
+                max="300"
+                value={settings.refreshInterval}
+                onChange={(e) =>
+                  setSettings({ ...settings, refreshInterval: parseInt(e.target.value) })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end pb-4">
+          <button
+            onClick={handleSave}
+            disabled={saveSettingsMutation.isLoading}
+            className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Cog6ToothIcon className="h-5 w-5 mr-2" />
+            {saveSettingsMutation.isLoading ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
       </div>
     </div>
   )

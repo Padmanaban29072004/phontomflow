@@ -1,74 +1,76 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { CheckCircleIcon, ExclamationCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 
-interface DashboardMetrics {
-  totalRequests: number
-  threatsDetected: number
-  falsePositives: number
+interface SystemMetrics {
+  systemHealth: number
   averageResponseTime: number
   accuracy: number
-  activeThreats: number
-  blockedAttacks: number
-  systemHealth: number
 }
 
 interface SystemStatusCardProps {
-  metrics: DashboardMetrics
+  metrics: SystemMetrics
 }
 
-const serviceItems = [
-  { label: 'Threat Detection', key: 'accuracy', format: (v: number) => `${v.toFixed(1)}%` },
-  { label: 'Active Threats', key: 'activeThreats', format: (v: number) => v.toString() },
-  { label: 'Blocked Attacks', key: 'blockedAttacks', format: (v: number) => v.toString() },
-  { label: 'Response Time', key: 'averageResponseTime', format: (v: number) => `${v}ms` },
-  { label: 'False Positives', key: 'falsePositives', format: (v: number) => v.toString() },
-]
+const getHealthStatus = (health: number) => {
+  if (health >= 90) return { status: 'excellent', color: 'green', icon: CheckCircleIcon }
+  if (health >= 70) return { status: 'good', color: 'yellow', icon: ExclamationCircleIcon }
+  return { status: 'warning', color: 'red', icon: XCircleIcon }
+}
 
 export function SystemStatusCard({ metrics }: SystemStatusCardProps) {
+  const healthStatus = getHealthStatus(metrics.systemHealth)
+  const StatusIcon = healthStatus.icon
+
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
-    >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
-
-      <div className="mb-4 flex items-center gap-3">
-        <div className="relative h-16 w-16">
-          <svg className="h-16 w-16 -rotate-90" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#e5e7eb" strokeWidth="3" />
-            <circle
-              cx="18" cy="18" r="15.5" fill="none"
-              stroke={metrics.systemHealth >= 90 ? '#22c55e' : metrics.systemHealth >= 70 ? '#eab308' : '#ef4444'}
-              strokeWidth="3"
-              strokeDasharray={`${metrics.systemHealth} ${100 - metrics.systemHealth}`}
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-900">
-            {metrics.systemHealth}%
-          </span>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">System Status</h2>
+        <div className={`flex items-center space-x-2 text-${healthStatus.color}-600`}>
+          <StatusIcon className="h-6 w-6" />
+          <span className="text-sm font-medium capitalize">{healthStatus.status}</span>
         </div>
+      </div>
+
+      <div className="space-y-4">
         <div>
-          <p className="text-sm font-medium text-gray-900">System Health</p>
-          <p className="text-xs text-gray-500">
-            {metrics.systemHealth >= 90 ? 'All systems operational' :
-             metrics.systemHealth >= 70 ? 'Minor issues detected' :
-             'Critical attention required'}
-          </p>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">System Health</span>
+            <span className="text-sm font-semibold text-gray-900">{metrics.systemHealth}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className={`bg-${healthStatus.color}-500 h-2 rounded-full transition-all duration-500`}
+              style={{ width: `${metrics.systemHealth}%` }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">Detection Accuracy</span>
+            <span className="text-sm font-semibold text-gray-900">{metrics.accuracy.toFixed(1)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-green-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${metrics.accuracy}%` }}
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">Average Response Time</span>
+            <span className="text-sm font-semibold text-gray-900">{metrics.averageResponseTime}ms</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min(100, (1000 - metrics.averageResponseTime) / 10)}%` }}
+            />
+          </div>
         </div>
       </div>
-
-      <div className="space-y-3">
-        {serviceItems.map((item) => {
-          const value = metrics[item.key as keyof DashboardMetrics] as number
-          return (
-            <div key={item.key} className="flex items-center justify-between border-b border-gray-100 pb-2 last:border-0">
-              <span className="text-sm text-gray-600">{item.label}</span>
-              <span className="text-sm font-semibold text-gray-900">{item.format(value)}</span>
-            </div>
-          )
-        })}
-      </div>
-    </motion.div>
+    </div>
   )
 }
