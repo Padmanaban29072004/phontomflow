@@ -19,6 +19,7 @@ import { metricsRoutes } from '@/api/routes/metrics';
 import { docsRoutes } from '@/api/routes/docs';
 import { influxdbRoutes } from '@/api/routes/influxdb';
 import { Neo4jService } from '@/graph/Neo4jService';
+import { Neo4jIntegration } from '@/services/Neo4jIntegration';
 import { createGraphRouter } from '@/api/routes/graph';
 
 // Load environment variables
@@ -32,6 +33,7 @@ class PhantomFlowServer {
   private threatDetectionEngine!: ThreatDetectionEngine;
   private deceptionService!: DeceptionService;
   private adaptiveLearningService!: AdaptiveLearningService;
+  private neo4jIntegration!: Neo4jIntegration;
   private databaseService: DatabaseService;
   private redisService: RedisService;
   private neo4jService: Neo4jService;
@@ -181,6 +183,21 @@ class PhantomFlowServer {
           });
         }
         
+        // Persist request data to Neo4j graph (fire-and-forget)
+        this.neo4jIntegration.persistRequest({
+          ipAddress: assessment.ipAddress,
+          sessionId: assessment.sessionId,
+          userId: assessment.userId,
+          userAgent: assessment.userAgent,
+          requestPath: assessment.requestPath,
+          requestMethod: assessment.requestMethod,
+          threatScore: assessment.threatScore,
+          riskLevel: assessment.riskLevel,
+          threatType: assessment.threatType,
+        }).catch((err: Error) => {
+          logger.warn('Neo4j graph persistence skipped:', err.message);
+        });
+
         next();
       } catch (error) {
         logger.error('Error in threat detection middleware:', error);
@@ -256,6 +273,14 @@ class PhantomFlowServer {
       epochs: 10
     };
     this.adaptiveLearningService = new AdaptiveLearningService(this.redisService, learningConfig);
+
+    // Initialize Neo4j graph integration if available
+    this.neo4jIntegration = new Neo4jIntegration(this.neo4jService);
+    if (this.neo4jService.isConnected()) {
+      logger.info('Neo4jIntegration initialized with live connection');
+    } else {
+      logger.info('Neo4jIntegration initialized in fallback mode (no graph persistence)');
+    }
 
     // Initialize threat detection system
     this.initializeThreatDetection();
