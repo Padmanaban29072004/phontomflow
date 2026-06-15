@@ -1,6 +1,8 @@
 mod analysis;
 mod compression;
 mod encryption;
+mod grpc_service;
+mod kafka;
 mod network;
 mod performance_engine;
 mod security_engine;
@@ -39,6 +41,15 @@ struct Cli {
 
     #[arg(long, default_value_t = 4)]
     workers: usize,
+
+    #[arg(long, default_value = "9091")]
+    grpc_port: u16,
+
+    #[arg(long, default_value = "localhost:9092")]
+    kafka_brokers: String,
+
+    #[arg(long, default_value_t = false)]
+    enable_kafka: bool,
 }
 
 struct AppState {
@@ -87,12 +98,33 @@ async fn main() -> Result<()> {
         encryption_enabled: true,
     };
 
-    let security_engine = SecurityEngine::new(sec_config);
+    let http_engine = SecurityEngine::new(SecurityConfig {
+        max_request_size: sec_config.max_request_size,
+        rate_limit_window: sec_config.rate_limit_window,
+        rate_limit_max_requests: sec_config.rate_limit_max_requests,
+        threat_score_threshold: sec_config.threat_score_threshold,
+        enable_ml_analysis: sec_config.enable_ml_analysis,
+        enable_behavioral_analysis: sec_config.enable_behavioral_analysis,
+        cache_ttl: sec_config.cache_ttl,
+        worker_threads: sec_config.worker_threads,
+        batch_size: sec_config.batch_size,
+    });
+    let grpc_engine = SecurityEngine::new(SecurityConfig {
+        max_request_size: sec_config.max_request_size,
+        rate_limit_window: sec_config.rate_limit_window,
+        rate_limit_max_requests: sec_config.rate_limit_max_requests,
+        threat_score_threshold: sec_config.threat_score_threshold,
+        enable_ml_analysis: sec_config.enable_ml_analysis,
+        enable_behavioral_analysis: sec_config.enable_behavioral_analysis,
+        cache_ttl: sec_config.cache_ttl,
+        worker_threads: sec_config.worker_threads,
+        batch_size: sec_config.batch_size,
+    });
     let mut performance_engine = PerformanceEngine::new(perf_config)?;
     performance_engine.start().await?;
 
     let state = Arc::new(AppState {
-        security_engine,
+        security_engine: http_engine,
         performance_engine: Arc::new(tokio::sync::Mutex::new(performance_engine)),
     });
 
@@ -107,15 +139,59 @@ async fn main() -> Result<()> {
         }
     });
 
+    let shutdown = shutdown_signal();
+    let (stop_tx, stop_rx) = tokio::sync::watch::channel(false);
+
     let server = Server::bind(&addr).serve(make_svc);
-    let graceful = server.with_graceful_shutdown(shutdown_signal());
+    let http_handle = tokio::spawn(async move {
+        let graceful = server.with_graceful_shutdown(async {
+            shutdown.await;
+            let _ = stop_tx.send(true);
+        });
+        tracing::info!("HTTP server listening on http://{}", addr);
+        if let Err(e) = graceful.await {
+            tracing::error!("HTTP server error: {}", e);
+        }
+    });
 
-    tracing::info!("Listening on http://{}", addr);
+    let grpc_host = cli.host.clone();
+    let grpc_port = cli.grpc_port;
+    let grpc_handle = tokio::spawn(async move {
+        if let Err(e) = grpc_service::start_grpc_server(grpc_engine, &grpc_host, grpc_port).await {
+            tracing::error!("gRPC server error: {}", e);
+        }
+    });
 
-    if let Err(e) = graceful.await {
-        tracing::error!("Server error: {}", e);
-    }
+    let kafka_handle = if cli.enable_kafka {
+        let brokers = cli.kafka_brokers.clone();
+        let engine = Arc::new(tokio::sync::Mutex::new(
+            SecurityEngine::new(SecurityConfig {
+                max_request_size: sec_config.max_request_size,
+                rate_limit_window: sec_config.rate_limit_window,
+                rate_limit_max_requests: sec_config.rate_limit_max_requests,
+                threat_score_threshold: sec_config.threat_score_threshold,
+                enable_ml_analysis: sec_config.enable_ml_analysis,
+                enable_behavioral_analysis: sec_config.enable_behavioral_analysis,
+                cache_ttl: sec_config.cache_ttl,
+                worker_threads: sec_config.worker_threads,
+                batch_size: sec_config.batch_size,
+            }),
+        ));
+        let topics = vec!["threat-detected", "response-executed"];
+        tokio::spawn(async move {
+            if let Err(e) = kafka::start_kafka_consumer(engine, &brokers, "phantom-flow-rust", &topics, stop_rx.clone()).await {
+                tracing::error!("Kafka consumer error: {}", e);
+            }
+        })
+    } else {
+        tokio::spawn(async move {
+            let _ = stop_rx.clone();
+            tracing::info!("Kafka consumer disabled");
+        })
+    };
 
+    let _ = tokio::join!(http_handle, grpc_handle, kafka_handle);
+    tracing::info!("Engine shutdown complete");
     Ok(())
 }
 
