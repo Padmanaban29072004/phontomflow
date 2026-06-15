@@ -21,6 +21,13 @@ import { influxdbRoutes } from '@/api/routes/influxdb';
 import { Neo4jService } from '@/graph/Neo4jService';
 import { Neo4jIntegration } from '@/services/Neo4jIntegration';
 import { createGraphRouter } from '@/api/routes/graph';
+import { ThompsonSampling } from '@/core/bandit/ThompsonSampling';
+import { UserReputationService } from '@/services/UserReputationService';
+import { AdaptiveDecisionEngine } from '@/services/AdaptiveDecisionEngine';
+import { BanditPersistence } from '@/services/BanditPersistence';
+import { FeedbackCollector } from '@/services/FeedbackCollector';
+import { getDefaultBanditConfiguration } from '@/config/banditConfig';
+import { createBanditRouter } from '@/api/routes/bandit';
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +45,10 @@ class PhantomFlowServer {
   private redisService: RedisService;
   private neo4jService: Neo4jService;
   private graphRoutes!: Router;
+  private adaptiveDecisionEngine!: AdaptiveDecisionEngine;
+  private feedbackCollector!: FeedbackCollector;
+  private banditPersistence!: BanditPersistence;
+  private banditRoutes!: Router;
 
   constructor() {
     this.port = parseInt(process.env.PORT || '3001');
@@ -155,6 +166,12 @@ class PhantomFlowServer {
 
     // Threat detection middleware for all API routes
     this.app.use('/api/*', async (req, res, next) => {
+      // Skip threat detection for internal API routes (req.path is relative to /api mount)
+      const skipPaths = ['/graph', '/bandit', '/docs'];
+      if (skipPaths.some(p => req.path.startsWith(p))) {
+        return next();
+      }
+
       try {
         const assessment = await this.threatDetectionEngine.detectThreats(req, res, next);
         
@@ -183,6 +200,17 @@ class PhantomFlowServer {
           });
         }
         
+        // Let adaptive bandit engine evaluate and learn from this request
+        if (this.adaptiveDecisionEngine) {
+          this.adaptiveDecisionEngine.decideAndExecute(req, res, assessment)
+            .then((decision) => {
+              (req as any).banditDecision = decision;
+            })
+            .catch((err: Error) => {
+              logger.warn('Bandit decision error:', err.message);
+            });
+        }
+
         // Persist request data to Neo4j graph (fire-and-forget)
         this.neo4jIntegration.persistRequest({
           ipAddress: assessment.ipAddress,
@@ -205,17 +233,11 @@ class PhantomFlowServer {
       }
     });
 
-    // Mount graph routes (before 404 handler)
+    // Mount graph routes
     this.app.use('/api/graph', this.graphRoutes);
     logger.info('📊 Graph API routes mounted at /api/graph');
 
-    // 404 handler
-    this.app.use('*', (req, res) => {
-      res.status(404).json({
-        error: 'Not found',
-        message: 'The requested resource was not found'
-      });
-    });
+    // 404 handler set up in start() after all routes mounted
   }
 
   /**
@@ -285,6 +307,26 @@ class PhantomFlowServer {
     } else {
       logger.info('Neo4jIntegration initialized in fallback mode (no graph persistence)');
     }
+
+    // Initialize adaptive bandit engine
+    const banditConfig = getDefaultBanditConfiguration();
+    const bandit = new ThompsonSampling(banditConfig);
+    this.banditPersistence = new BanditPersistence(bandit, banditConfig);
+    await this.banditPersistence.initialize();
+
+    const userReputation = new UserReputationService(this.neo4jService);
+    this.feedbackCollector = new FeedbackCollector(bandit, this.banditPersistence, banditConfig);
+    this.adaptiveDecisionEngine = new AdaptiveDecisionEngine(
+      bandit,
+      userReputation,
+      this.neo4jService,
+      undefined,
+      banditConfig,
+    );
+
+    this.banditRoutes = createBanditRouter(this.adaptiveDecisionEngine, this.feedbackCollector);
+    this.app.use('/api/bandit', this.banditRoutes);
+    logger.info('🎰 Bandit API routes mounted at /api/bandit');
 
     // Initialize threat detection system
     this.initializeThreatDetection();
@@ -391,6 +433,14 @@ class PhantomFlowServer {
         // Initialize services after database connection attempts
       await this.initializeServices();
 
+      // 404 handler (after all routes mounted including bandit)
+      this.app.use('*', (req, res) => {
+        res.status(404).json({
+          error: 'Not found',
+          message: 'The requested resource was not found'
+        });
+      });
+
       // Start the server
       this.server.listen(this.port, () => {
         logger.info(`🚀 PHANTOM-Flow Defense System started on port ${this.port}`);
@@ -428,6 +478,11 @@ class PhantomFlowServer {
         await this.adaptiveLearningService.stop();
       }
       
+      // Persist bandit state and stop
+      if (this.banditPersistence) {
+        await this.banditPersistence.shutdown();
+      }
+
       // Close database connections
       await this.databaseService.disconnect();
       await this.redisService.disconnect();

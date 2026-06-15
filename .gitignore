@@ -180,3 +180,4 @@ jspm_packages/
 
 # Vuepress build output
 .vuepress/dist
+.serena/
