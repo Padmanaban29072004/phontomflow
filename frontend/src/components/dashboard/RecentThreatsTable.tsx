@@ -1,81 +1,92 @@
-import React from 'react'
-import clsx from 'clsx'
+import { ShieldExclamationIcon, GlobeAltIcon } from '@heroicons/react/24/outline'
 
-interface ThreatAlert {
+interface Threat {
   id: string
   threatScore: number
   riskLevel: 'low' | 'medium' | 'high' | 'critical'
   ipAddress: string
   userAgent: string
-  timestamp: Date
+  timestamp: Date | string
   threatType: string[]
   status: 'active' | 'resolved' | 'investigating'
 }
 
 interface RecentThreatsTableProps {
-  threats: ThreatAlert[]
+  threats: Threat[]
 }
 
-const riskColors: Record<string, string> = {
-  critical: 'bg-red-100 text-red-800',
-  high: 'bg-orange-100 text-orange-800',
-  medium: 'bg-yellow-100 text-yellow-800',
-  low: 'bg-green-100 text-green-800',
-}
-
-const statusColors: Record<string, string> = {
-  active: 'bg-red-100 text-red-800',
-  investigating: 'bg-blue-100 text-blue-800',
-  resolved: 'bg-gray-100 text-gray-800',
-}
-
-function formatTimestamp(date: Date): string {
-  const d = new Date(date)
-  const now = new Date()
-  const diff = now.getTime() - d.getTime()
-
-  if (diff < 60000) return 'Just now'
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
-  return d.toLocaleDateString()
+const getRiskColor = (risk: string) => {
+  switch (risk) {
+    case 'critical':
+      return 'bg-red-100 text-red-800 border-red-200'
+    case 'high':
+      return 'bg-orange-100 text-orange-800 border-orange-200'
+    case 'medium':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    default:
+      return 'bg-blue-100 text-blue-800 border-blue-200'
+  }
 }
 
 export function RecentThreatsTable({ threats }: RecentThreatsTableProps) {
   if (threats.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-        <svg className="h-10 w-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <p className="text-sm">No threats detected</p>
+      <div className="text-center py-8 text-gray-500">
+        <ShieldExclamationIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+        <p>No recent threats detected</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
-      {threats.slice(0, 5).map((threat) => (
-        <div
-          key={threat.id}
-          className="flex items-start justify-between rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50"
-        >
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className={clsx('rounded px-2 py-0.5 text-xs font-medium', riskColors[threat.riskLevel])}>
-                {threat.riskLevel}
-              </span>
-              <span className="text-sm font-medium text-gray-900 truncate">{threat.ipAddress}</span>
-            </div>
-            <p className="mt-1 text-xs text-gray-500 truncate">{threat.threatType.join(', ')}</p>
-          </div>
-          <div className="ml-3 flex flex-col items-end gap-1">
-            <span className={clsx('rounded px-2 py-0.5 text-xs font-medium', statusColors[threat.status])}>
-              {threat.status}
-            </span>
-            <span className="text-xs text-gray-400">{formatTimestamp(threat.timestamp)}</span>
-          </div>
-        </div>
-      ))}
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              IP Address
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Risk
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Score
+            </th>
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Time
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {threats.slice(0, 10).map((threat) => (
+            <tr key={threat.id} className="hover:bg-gray-50 transition-colors">
+              <td className="px-3 py-3 whitespace-nowrap">
+                <div className="flex items-center">
+                  <GlobeAltIcon className="h-4 w-4 text-gray-400 mr-2" />
+                  <span className="text-sm font-medium text-gray-900">{threat.ipAddress}</span>
+                </div>
+              </td>
+              <td className="px-3 py-3 whitespace-nowrap">
+                <span
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getRiskColor(
+                    threat.riskLevel
+                  )}`}
+                >
+                  {threat.riskLevel}
+                </span>
+              </td>
+              <td className="px-3 py-3 whitespace-nowrap">
+                <span className="text-sm text-gray-900">
+                  {(threat.threatScore * 100).toFixed(0)}%
+                </span>
+              </td>
+              <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
+                {new Date(threat.timestamp).toLocaleTimeString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }

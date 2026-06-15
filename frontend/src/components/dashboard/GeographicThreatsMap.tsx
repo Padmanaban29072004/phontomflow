@@ -1,53 +1,67 @@
-import React from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { MapPinIcon } from '@heroicons/react/24/outline'
 
-interface ThreatAlert {
-  id: string
-  threatScore: number
-  riskLevel: string
+interface Threat {
   ipAddress: string
-  userAgent: string
-  timestamp: Date
-  threatType: string[]
-  status: string
+  country?: string
+  riskLevel: string
 }
 
 interface GeographicThreatsMapProps {
-  threats: ThreatAlert[]
+  threats: Threat[]
 }
 
-const regionData = [
-  { region: 'North America', threats: 142, severity: 'high' },
-  { region: 'Europe', threats: 98, severity: 'medium' },
-  { region: 'Asia Pacific', threats: 156, severity: 'critical' },
-  { region: 'Middle East', threats: 45, severity: 'medium' },
-  { region: 'Latin America', threats: 67, severity: 'low' },
-  { region: 'Africa', threats: 23, severity: 'low' },
-]
-
 export function GeographicThreatsMap({ threats }: GeographicThreatsMapProps) {
+  const threatsByCountry = threats.reduce((acc, threat) => {
+    const country = threat.country || 'Unknown'
+    if (!acc[country]) {
+      acc[country] = { count: 0, highRisk: 0 }
+    }
+    acc[country].count++
+    if (threat.riskLevel === 'high' || threat.riskLevel === 'critical') {
+      acc[country].highRisk++
+    }
+    return acc
+  }, {} as Record<string, { count: number; highRisk: number }>)
+
+  const topCountries = Object.entries(threatsByCountry)
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 5)
+
+  if (topCountries.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <MapPinIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+        <p>No geographic data available</p>
+      </div>
+    )
+  }
+
+  const maxCount = Math.max(...topCountries.map(([, d]) => d.count))
+
   return (
-    <div className="h-64">
-      {threats.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-gray-400">
-          <svg className="h-10 w-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
-          </svg>
-          <p className="text-sm">No geographic data</p>
-        </div>
-      ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={regionData} layout="vertical" margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-            <YAxis type="category" dataKey="region" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} width={100} />
-            <Tooltip
-              contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }}
+    <div className="space-y-3">
+      {topCountries.map(([country, data]) => (
+        <div key={country} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-3 min-w-0">
+            <MapPinIcon className="h-5 w-5 text-gray-400 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{country}</p>
+              <p className="text-xs text-gray-500">
+                {data.highRisk > 0 && (
+                  <span className="text-red-600 font-medium">{data.highRisk} high risk | </span>
+                )}
+                {data.count} total
+              </p>
+            </div>
+          </div>
+          <div className="w-24 bg-gray-200 rounded-full h-2 flex-shrink-0 ml-3">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${(data.count / maxCount) * 100}%` }}
             />
-            <Bar dataKey="threats" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      )}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

@@ -1,45 +1,78 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import clsx from 'clsx'
 
 interface ThreatMetricsCardProps {
   title: string
-  value: string
+  value: string | number
   icon: React.ReactNode
-  color: string
-  trend: string
-  trendDirection: 'up' | 'down'
+  color: 'blue' | 'red' | 'green' | 'purple' | 'yellow'
+  trend?: string
+  trendDirection?: 'up' | 'down'
 }
 
-const colorMap: Record<string, string> = {
-  blue: 'bg-blue-50 text-blue-600',
-  red: 'bg-red-50 text-red-600',
-  green: 'bg-green-50 text-green-600',
-  purple: 'bg-purple-50 text-purple-600',
-  yellow: 'bg-yellow-50 text-yellow-600',
+const colorClasses = {
+  blue: {
+    bg: 'bg-blue-50',
+    icon: 'text-blue-600',
+    border: 'border-blue-200',
+    trendUp: 'text-blue-600',
+    trendDown: 'text-blue-600',
+  },
+  red: {
+    bg: 'bg-red-50',
+    icon: 'text-red-600',
+    border: 'border-red-200',
+    trendUp: 'text-red-600',
+    trendDown: 'text-green-600',
+  },
+  green: {
+    bg: 'bg-green-50',
+    icon: 'text-green-600',
+    border: 'border-green-200',
+    trendUp: 'text-green-600',
+    trendDown: 'text-red-600',
+  },
+  purple: {
+    bg: 'bg-purple-50',
+    icon: 'text-purple-600',
+    border: 'border-purple-200',
+    trendUp: 'text-purple-600',
+    trendDown: 'text-purple-600',
+  },
+  yellow: {
+    bg: 'bg-yellow-50',
+    icon: 'text-yellow-600',
+    border: 'border-yellow-200',
+    trendUp: 'text-yellow-600',
+    trendDown: 'text-yellow-600',
+  },
 }
 
-const trendColorMap: Record<string, string> = {
-  up: 'text-green-600',
-  down: 'text-red-600',
-}
+export function ThreatMetricsCard({ title, value, icon, color, trend, trendDirection = 'up' }: ThreatMetricsCardProps) {
+  const colors = colorClasses[color]
 
-export function ThreatMetricsCard({ title, value, icon, color, trend, trendDirection }: ThreatMetricsCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+      whileHover={{ scale: 1.02 }}
+      className={`bg-white rounded-xl shadow-sm border ${colors.border} p-6 transition-all duration-200 hover:shadow-md`}
     >
       <div className="flex items-center justify-between">
-        <div className={clsx('rounded-lg p-3', colorMap[color] || colorMap.blue)}>
-          {icon}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          {trend && (
+            <div className="flex items-center mt-2">
+              <span className={`text-sm font-medium ${trendDirection === 'up' ? colors.trendUp : colors.trendDown}`}>
+                {trendDirection === 'up' ? '\u2191' : '\u2193'} {trend}
+              </span>
+              <span className="text-xs text-gray-500 ml-2">vs last hour</span>
+            </div>
+          )}
         </div>
-        <span className={clsx('text-sm font-medium', trendColorMap[trendDirection])}>
-          {trend}
-        </span>
+        <div className={`${colors.bg} p-3 rounded-lg flex-shrink-0 ml-4`}>
+          <div className={colors.icon}>{icon}</div>
+        </div>
       </div>
-      <p className="mt-4 text-2xl font-bold text-gray-900">{value}</p>
-      <p className="mt-1 text-sm text-gray-500">{title}</p>
     </motion.div>
   )
 }
