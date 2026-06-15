@@ -148,3 +148,4 @@ temp/
 # Test files
 test-results/
 coverage/
+bandit_state.json
