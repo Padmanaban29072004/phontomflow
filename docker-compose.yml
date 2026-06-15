@@ -1,4 +1,14 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-restart: &restart-policy
+  restart: unless-stopped
+
 services:
+  # ===================== Data Layer =====================
   neo4j:
     image: neo4j:5-community
     container_name: phantom-flow-neo4j
@@ -6,7 +16,7 @@ services:
       - "7687:7687"
       - "7474:7474"
     environment:
-      NEO4J_AUTH: neo4j/dev-password-123
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-dev-password-123}
       NEO4J_PLUGINS: '["apoc"]'
       NEO4J_dbms_memory_pagecache_size: 512M
       NEO4J_dbms_memory_heap_initial__size: 1G
@@ -25,10 +35,228 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    restart: unless-stopped
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - data
 
+  redis:
+    image: redis:7-alpine
+    container_name: phantom-flow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - data
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: phantom-flow-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUXDB_USER:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUXDB_PASSWORD:-dev-password-456}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUXDB_ORG:-phantom-flow}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUXDB_BUCKET:-metrics}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUXDB_TOKEN:-dev-token-789}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - data
+
+  mongodb:
+    image: mongo:7
+    container_name: phantom-flow-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-dev-password-456}
+      MONGO_INITDB_DATABASE: phantom-flow
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - data
+
+  # ===================== Application Layer =====================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: phantom-flow-backend
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3001
+      MONGODB_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-dev-password-456}@mongodb:27017/phantom-flow?authSource=admin
+      REDIS_URL: redis://redis:6379
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-dev-password-123}
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: ${INFLUXDB_TOKEN:-dev-token-789}
+      INFLUXDB_ORG: ${INFLUXDB_ORG:-phantom-flow}
+      INFLUXDB_BUCKET: ${INFLUXDB_BUCKET:-metrics}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      JWT_EXPIRY: 24h
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-dev-encryption-key-32-bytes-long!!}
+      FRONTEND_URL: http://localhost:3000
+      LOG_LEVEL: info
+      RATE_LIMIT_WINDOW: 900000
+      RATE_LIMIT_MAX: 100
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      influxdb:
+        condition: service_started
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - backend
+      - data
+
+  go-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.go-server
+    container_name: phantom-flow-go-server
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      GIN_MODE: release
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-dev-password-456}@postgres:5432/phantom-flow?sslmode=disable
+    depends_on:
+      redis:
+        condition: service_healthy
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - backend
+      - data
+
+  rust-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.rust-engine
+    container_name: phantom-flow-rust-engine
+    ports:
+      - "9090:9090"
+    environment:
+      RUST_LOG: info
+    command: ["--port", "9090", "--log-level", "info"]
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - backend
+
+  ml-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.python-ml
+    container_name: phantom-flow-ml-service
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: 8000
+      PYTHONPATH: /app
+    depends_on:
+      redis:
+        condition: service_healthy
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - backend
+      - data
+
+  # ===================== Frontend Layer =====================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: phantom-flow-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - frontend
+
+  # ===================== Service Mesh =====================
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: phantom-flow-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+      - go-server
+      - ml-service
+      - rust-engine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/includes:/etc/nginx/includes:ro
+    <<: *restart-policy
+    logging: *default-logging
+    networks:
+      - frontend
+      - backend
+
+# ===================== Networks =====================
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true
+  data:
+    driver: bridge
+    internal: true
+
+# ===================== Volumes =====================
 volumes:
   neo4j_data:
   neo4j_logs:
   neo4j_import:
   neo4j_plugins:
+  redis_data:
+  influxdb_data:
+  mongodb_data:

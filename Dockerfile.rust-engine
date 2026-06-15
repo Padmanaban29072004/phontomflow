@@ -1,0 +1,22 @@
+FROM rust:1.77-slim AS builder
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config libssl-dev libpcap-dev && \
+    rm -rf /var/lib/apt/lists/*
+COPY Cargo.toml Cargo.lock* ./
+COPY src/ ./src/
+RUN cargo build --release --features "crypto" && \
+    cp target/release/phantom-security-engine /engine
+
+FROM debian:stable-slim AS runner
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates libssl3 libpcap0.8 && \
+    rm -rf /var/lib/apt/lists/* && \
+    adduser --system --uid 1001 appuser
+COPY --from=builder /engine /usr/local/bin/
+USER appuser
+EXPOSE 9090
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD wget -qO- http://localhost:9090/health || exit 1
+ENTRYPOINT ["phantom-security-engine"]
+CMD ["--port", "9090"]

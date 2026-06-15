@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: phantom-flow
+  labels:
+    app.kubernetes.io/name: phantom-flow
+    app.kubernetes.io/component: backend
+data:
+  NODE_ENV: "production"
+  PORT: "3001"
+  JWT_EXPIRY: "24h"
+  LOG_LEVEL: "info"
+  RATE_LIMIT_WINDOW: "900000"
+  RATE_LIMIT_MAX: "100"
+  MONGODB_URI: "mongodb://$(MONGO_USER):$(MONGO_PASSWORD)@mongodb:27017/phantom-flow?authSource=admin"
+  REDIS_URL: "redis://redis:6379"
+  NEO4J_URI: "bolt://neo4j:7687"
+  INFLUXDB_URL: "http://influxdb:8086"
+  FRONTEND_URL: "http://frontend:80"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: phantom-flow
+  labels:
+    app.kubernetes.io/name: phantom-flow
+    app.kubernetes.io/component: nginx
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+    events {
+        worker_connections 4096;
+        multi_accept on;
+    }
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+        sendfile on;
+        tcp_nopush on;
+        keepalive_timeout 65;
+        server_tokens off;
+        client_max_body_size 10m;
+
+        upstream backend {
+            server backend:3001;
+        }
+        upstream frontend {
+            server frontend:80;
+        }
+
+        server {
+            listen 80;
+            server_name _;
+
+            location /health {
+                return 200 "healthy\n";
+            }
+            location / {
+                proxy_pass http://frontend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            }
+            location /api/ {
+                proxy_pass http://backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_read_timeout 60s;
+            }
+            location /socket.io/ {
+                proxy_pass http://backend;
+                proxy_http_version 1.1;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection "upgrade";
+                proxy_read_timeout 86400s;
+            }
+        }
+    }

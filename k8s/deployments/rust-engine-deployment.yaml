@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rust-engine
+  namespace: phantom-flow
+  labels:
+    app.kubernetes.io/name: phantom-flow
+    app.kubernetes.io/component: rust-engine
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: rust-engine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: rust-engine
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      serviceAccountName: phantom-flow
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+        - name: rust-engine
+          image: ghcr.io/phantom-flow/rust-engine:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9090
+              name: http
+              protocol: TCP
+          args: ["--port", "9090", "--log-level", "info"]
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+            limits:
+              cpu: "2"
+              memory: "1Gi"

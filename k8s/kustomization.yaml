@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: phantom-flow
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - config/backend-configmap.yaml
+  - config/backend-secrets.yaml
+  - deployments/backend-deployment.yaml
+  - deployments/frontend-deployment.yaml
+  - deployments/go-server-deployment.yaml
+  - deployments/rust-engine-deployment.yaml
+  - deployments/ml-service-deployment.yaml
+  - deployments/nginx-deployment.yaml
+  - services/backend-service.yaml
+  - services/frontend-service.yaml
+  - services/go-server-service.yaml
+  - services/rust-engine-service.yaml
+  - services/ml-service-service.yaml
+  - services/nginx-service.yaml
+  - ingress/ingress.yaml
+
+images:
+  - name: ghcr.io/phantom-flow/backend
+    newTag: latest
+  - name: ghcr.io/phantom-flow/frontend
+    newTag: latest
+  - name: ghcr.io/phantom-flow/go-server
+    newTag: latest
+  - name: ghcr.io/phantom-flow/rust-engine
+    newTag: latest
+  - name: ghcr.io/phantom-flow/ml-service
+    newTag: latest
+  - name: ghcr.io/phantom-flow/nginx
+    newTag: latest
