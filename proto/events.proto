@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package phantom_flow.events;
+
+message ThreatDetectedEvent {
+  string event_id = 1;
+  string request_id = 2;
+  string client_ip = 3;
+  double threat_score = 4;
+  string risk_level = 5;
+  string threat_type = 6;
+  string request_path = 7;
+  string request_method = 8;
+  string source_service = 9;
+  int64 timestamp_unix_ms = 10;
+}
+
+message ResponseExecutedEvent {
+  string event_id = 1;
+  string request_id = 2;
+  string client_ip = 3;
+  string action_type = 4;
+  string target = 5;
+  bool success = 6;
+  double duration_ms = 7;
+  string threat_id = 8;
+  string source_service = 9;
+  int64 timestamp_unix_ms = 10;
+}

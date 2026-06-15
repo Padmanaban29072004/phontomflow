@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package phantom_flow.ml;
+
+service MLInference {
+  rpc Predict(PredictRequest) returns (PredictResponse);
+}
+
+message PredictRequest {
+  repeated double features = 1;
+  string ip_address = 2;
+  string user_agent = 3;
+  string request_path = 4;
+  string request_method = 5;
+}
+
+message PredictResponse {
+  bool success = 1;
+  double threat_score = 2;
+  double anomaly_score = 3;
+  double confidence = 4;
+  string error = 5;
+}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package phantom_flow.engine;
+
+service SecurityEngine {
+  rpc Analyze(SecurityRequest) returns (SecurityResponse);
+}
+
+message SecurityRequest {
+  string request_id = 1;
+  string client_ip = 2;
+  string user_agent = 3;
+  string request_method = 4;
+  string request_path = 5;
+  map<string, string> headers = 6;
+  bytes body = 7;
+  string session_id = 8;
+  string user_id = 9;
+}
+
+message SecurityResponse {
+  bool success = 1;
+  bool is_malicious = 2;
+  double threat_score = 3;
+  repeated string risk_factors = 4;
+  double confidence = 5;
+  string error = 6;
+}

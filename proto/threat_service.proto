@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package phantom_flow.threat;
+
+service ThreatAnalysis {
+  rpc AnalyzeThreat(ThreatRequest) returns (ThreatResponse);
+}
+
+message ThreatRequest {
+  string request_id = 1;
+  string client_ip = 2;
+  string user_agent = 3;
+  string request_method = 4;
+  string request_path = 5;
+  map<string, string> headers = 6;
+  bytes body = 7;
+  string session_id = 8;
+  string user_id = 9;
+}
+
+message ThreatResponse {
+  bool success = 1;
+  double threat_score = 2;
+  double confidence = 3;
+  string risk_level = 4;
+  string threat_type = 5;
+  repeated string signatures_matched = 6;
+  string error = 7;
+}
