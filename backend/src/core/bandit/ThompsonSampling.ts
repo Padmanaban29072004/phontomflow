@@ -221,4 +221,12 @@ export class ThompsonSampling {
   getSelectionCount(action: BanditActionType, ctx: BanditContext): number {
     return this.selectionCounts.get(this.stateKey(action, ctx)) || 0;
   }
+
+  reset(): void {
+    this.state = {};
+    this.selectionCounts.clear();
+    this.rewardSums.clear();
+    this.totalSelections = 0;
+    this.initializePriors();
+  }
 }
