@@ -28,6 +28,9 @@ import { BanditPersistence } from '@/services/BanditPersistence';
 import { FeedbackCollector } from '@/services/FeedbackCollector';
 import { getDefaultBanditConfiguration } from '@/config/banditConfig';
 import { createBanditRouter } from '@/api/routes/bandit';
+import { v4 as uuidv4 } from 'uuid';
+import { GrpcClients } from '@/rpc/GrpcClients';
+import { KafkaBus } from '@/events/KafkaBus';
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +52,8 @@ class PhantomFlowServer {
   private feedbackCollector!: FeedbackCollector;
   private banditPersistence!: BanditPersistence;
   private banditRoutes!: Router;
+  private grpcClients?: GrpcClients;
+  private kafkaBus?: KafkaBus;
 
   constructor() {
     this.port = parseInt(process.env.PORT || '3001');
@@ -177,7 +182,56 @@ class PhantomFlowServer {
         
         // Add threat assessment to request object
         (req as any).threatAssessment = assessment;
-        
+
+        // Publish ThreatDetected event (fire-and-forget)
+        if (this.kafkaBus) {
+          this.kafkaBus.publish('threat-detected', {
+            eventId: uuidv4(),
+            requestId: assessment.sessionId || uuidv4(),
+            clientIp: assessment.ipAddress,
+            threatScore: assessment.threatScore,
+            riskLevel: assessment.riskLevel,
+            threatType: Array.isArray(assessment.threatType) ? assessment.threatType.join(',') : 'unknown',
+            requestPath: assessment.requestPath,
+            requestMethod: assessment.requestMethod,
+            sourceService: 'phantom-flow-backend',
+            timestampUnixMs: Date.now(),
+          }).catch(() => {/* fire-and-forget */});
+        }
+
+        // Run parallel gRPC analysis with other services (fire-and-forget)
+        if (this.grpcClients) {
+          const grpcRequest = {
+            requestId: assessment.sessionId || uuidv4(),
+            clientIp: assessment.ipAddress,
+            userAgent: assessment.userAgent,
+            requestMethod: assessment.requestMethod,
+            requestPath: assessment.requestPath,
+            headers: {},
+            body: Buffer.alloc(0),
+            sessionId: assessment.sessionId,
+            userId: assessment.userId,
+          };
+          Promise.allSettled([
+            this.grpcClients.predictThreat(
+              [assessment.threatScore], assessment.ipAddress, assessment.userAgent,
+              assessment.requestPath, assessment.requestMethod,
+            ),
+            this.grpcClients.analyzeWithRust(grpcRequest),
+            this.grpcClients.analyzeWithGo(grpcRequest),
+          ]).then(([ml, rust, go]) => {
+            if (ml.status === 'fulfilled' && ml.value.success) {
+              logger.debug(`gRPC ML analysis: score=${ml.value.threatScore}`);
+            }
+            if (rust.status === 'fulfilled' && rust.value.success) {
+              logger.debug(`gRPC Rust analysis: malicious=${rust.value.isMalicious}`);
+            }
+            if (go.status === 'fulfilled' && go.value.success) {
+              logger.debug(`gRPC Go analysis: threat=${go.value.threatType}`);
+            }
+          }).catch(() => {/* fire-and-forget */});
+        }
+
         // Handle high-risk threats
         if (assessment.riskLevel === 'critical') {
           logger.warn('Critical threat detected, applying immediate protection', {
@@ -202,9 +256,26 @@ class PhantomFlowServer {
         
         // Let adaptive bandit engine evaluate and learn from this request
         if (this.adaptiveDecisionEngine) {
+          const decisionStart = Date.now();
           this.adaptiveDecisionEngine.decideAndExecute(req, res, assessment)
             .then((decision) => {
               (req as any).banditDecision = decision;
+
+              // Publish ResponseExecuted event (fire-and-forget)
+              if (this.kafkaBus) {
+                this.kafkaBus.publish('response-executed', {
+                  eventId: uuidv4(),
+                  requestId: assessment.sessionId || uuidv4(),
+                  clientIp: assessment.ipAddress,
+                  actionType: decision.action,
+                  target: assessment.requestPath || '',
+                  success: decision.executed !== false,
+                  durationMs: Date.now() - decisionStart,
+                  threatId: assessment.sessionId || uuidv4(),
+                  sourceService: 'phantom-flow-backend',
+                  timestampUnixMs: Date.now(),
+                }).catch(() => {/* fire-and-forget */});
+              }
             })
             .catch((err: Error) => {
               logger.warn('Bandit decision error:', err.message);
@@ -327,6 +398,14 @@ class PhantomFlowServer {
     this.banditRoutes = createBanditRouter(this.adaptiveDecisionEngine, this.feedbackCollector);
     this.app.use('/api/bandit', this.banditRoutes);
     logger.info('🎰 Bandit API routes mounted at /api/bandit');
+
+    // Initialize gRPC clients
+    this.grpcClients = new GrpcClients();
+    this.grpcClients.init();
+
+    // Initialize Kafka event bus
+    this.kafkaBus = new KafkaBus();
+    await this.kafkaBus.connect();
 
     // Initialize threat detection system
     this.initializeThreatDetection();
@@ -481,6 +560,11 @@ class PhantomFlowServer {
       // Persist bandit state and stop
       if (this.banditPersistence) {
         await this.banditPersistence.shutdown();
+      }
+
+      // Disconnect Kafka
+      if (this.kafkaBus) {
+        await this.kafkaBus.disconnect();
       }
 
       // Close database connections

@@ -206,6 +206,9 @@ services:
       RATE_LIMIT_WINDOW: 900000
       RATE_LIMIT_MAX: 100
       KAFKA_BROKERS: kafka:9092
+      ML_GRPC_HOST: ml-service:8001
+      RUST_GRPC_HOST: rust-engine:9091
+      GO_GRPC_HOST: go-server:8081
     depends_on:
       neo4j:
         condition: service_healthy
