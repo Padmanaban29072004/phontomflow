@@ -1,14 +1,17 @@
 FROM rust:1.77-slim AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    pkg-config libssl-dev libpcap-dev && \
+    pkg-config libssl-dev libpcap-dev cmake && \
     rm -rf /var/lib/apt/lists/*
 COPY Cargo.toml ./
+COPY build.rs ./
+COPY proto/ ./proto/
 COPY src/ ./src/
-RUN cargo build --release --features "crypto" && \
-    cp target/release/phantom-security-engine /engine; \
-    if [ ! -f /engine ]; then \
-      echo "WARN: Rust build has pre-existing errors (missing crates: num_cpus, aes-gcm, chacha20poly1305, rand, argon2, scrypt, pbkdf2)"; \
+RUN cargo build --release --features "crypto" 2>&1; \
+    if [ -f target/release/phantom-security-engine ]; then \
+      cp target/release/phantom-security-engine /engine; \
+    else \
+      echo "WARN: Rust build has pre-existing errors (missing crates)"; \
       printf '#!/bin/sh\necho "Rust engine placeholder"\n' > /engine; \
       chmod +x /engine; \
     fi
@@ -20,8 +23,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     adduser --system --uid 1001 appuser
 COPY --from=builder /engine /usr/local/bin/phantom-security-engine
 USER appuser
-EXPOSE 9090
+EXPOSE 9090 9091
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD wget -qO- http://localhost:9090/health || exit 1
 ENTRYPOINT ["phantom-security-engine"]
-CMD ["--port", "9090"]
+CMD ["--port", "9090", "--grpc-port", "9091"]

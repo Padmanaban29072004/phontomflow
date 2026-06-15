@@ -5,6 +5,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 COPY ml_service/requirements.txt .
 RUN pip install --no-cache-dir --user -r requirements.txt
+COPY ml_service/ ./ml_service/
+COPY ml_models/ ./ml_models/
+COPY ai_models/ ./ai_models/
+COPY proto/ ./proto/
+RUN python ml_service/gen_proto.py
 
 FROM python:3.12-slim AS runner
 WORKDIR /app
@@ -13,13 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/* && \
     adduser --system --uid 1001 appuser
 COPY --from=builder /root/.local /home/appuser/.local
-COPY ml_service/ ./ml_service/
-COPY ml_models/ ./ml_models/
-COPY ai_models/ ./ai_models/
+COPY --from=builder /app/ml_service/ ./ml_service/
+COPY --from=builder /app/ml_models/ ./ml_models/
+COPY --from=builder /app/ai_models/ ./ai_models/
 ENV PATH=/home/appuser/.local/bin:$PATH \
     PYTHONPATH=/app
 USER appuser
-EXPOSE 8000
+EXPOSE 8000 8001
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD wget -qO- http://localhost:8000/health || exit 1
-CMD ["uvicorn", "ml_service.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "ml_service/run.py"]
