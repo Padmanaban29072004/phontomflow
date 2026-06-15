@@ -268,8 +268,10 @@ services:
     container_name: phantom-flow-ml-service
     ports:
       - "8000:8000"
+      - "8001:8001"
     environment:
       PORT: 8000
+      GRPC_PORT: 8001
       PYTHONPATH: /app
       KAFKA_BROKERS: kafka:9092
     depends_on:
