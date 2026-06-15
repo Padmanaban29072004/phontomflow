@@ -22,6 +22,7 @@ export interface ResponseAction {
 }
 
 export type ResponseActionType = 
+  | 'allow'
   | 'log_only'
   | 'rate_limit'
   | 'challenge_response'
@@ -31,7 +32,8 @@ export type ResponseActionType =
   | 'permanent_block'
   | 'quarantine'
   | 'alert_admin'
-  | 'honeypot_engage';
+  | 'honeypot_engage'
+  | 'divert';
 
 export interface ResponseActionConfig {
   // Rate limiting config
