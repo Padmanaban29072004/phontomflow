@@ -221,7 +221,8 @@ export class ResponseEngine {
       'temporary_block',
       'permanent_block',
       'deception_redirect',
-      'challenge_response'
+      'challenge_response',
+      'divert',
     ].includes(actionType);
   }
 

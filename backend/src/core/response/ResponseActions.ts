@@ -304,11 +304,152 @@ export class AlertAdminAction extends BaseResponseAction {
 }
 
 /**
+ * Allow Action - No-op pass through. Allows the request to proceed normally.
+ */
+export class AllowAction extends BaseResponseAction {
+  constructor(config: ResponseActionConfig) {
+    super('allow', config);
+  }
+
+  async execute(context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    const start = Date.now();
+    logger.info('Allow action — request proceeding normally', {
+      sessionId: context.sessionId,
+      riskScore: context.riskScore,
+      ipAddress: context.ipAddress,
+    });
+    return {
+      success: true,
+      latency: Date.now() - start,
+      metadata: { allowed: true },
+    };
+  }
+}
+
+/**
+ * Divert Action - Redirects the request to a deception/honeypot environment.
+ */
+export class DivertAction extends BaseResponseAction {
+  constructor(config: ResponseActionConfig) {
+    super('divert', config);
+  }
+
+  async execute(context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { result, latency } = await this.measureLatency(async () => {
+        const deceptionConfig = this.config.deception;
+        const targetUrl = deceptionConfig?.honeypotUrl || '/honeypot';
+        const logLevel = deceptionConfig?.logLevel || 'detailed';
+
+        context.response.status(302).redirect(targetUrl);
+
+        logger.warn('Divert action — request redirected to honeypot', {
+          sessionId: context.sessionId,
+          ipAddress: context.ipAddress,
+          userId: context.userId,
+          riskScore: context.riskScore,
+          redirectUrl: targetUrl,
+          logLevel,
+        });
+
+        return { redirected: true, targetUrl };
+      });
+
+      return {
+        success: true,
+        latency,
+        metadata: {
+          redirected: result.redirected,
+          targetUrl: result.targetUrl,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        latency: 0,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+}
+
+/**
+ * Challenge Action - Issues a challenge (CAPTCHA / proof-of-work) to verify the user.
+ */
+export class ChallengeAction extends BaseResponseAction {
+  constructor(config: ResponseActionConfig) {
+    super('challenge_response', config);
+  }
+
+  async execute(context: ActionExecutionContext): Promise<ActionExecutionResult> {
+    try {
+      const { result, latency } = await this.measureLatency(async () => {
+        const challengeConfig = this.config.challenge || {
+          type: 'javascript',
+          difficulty: 5,
+          timeout: 60000,
+        };
+
+        // Generate a challenge token (in prod this would use a proper challenge service)
+        const challengeToken = `ch_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+
+        if (challengeConfig.type === 'captcha') {
+          context.response.status(401).json({
+            error: 'Challenge required',
+            challengeType: 'captcha',
+            challengeToken,
+            message: 'Please complete the CAPTCHA to continue',
+          });
+        } else {
+          // JavaScript proof-of-work challenge
+          context.response.status(401).json({
+            error: 'Challenge required',
+            challengeType: challengeConfig.type,
+            challengeToken,
+            difficulty: challengeConfig.difficulty,
+            timeout: challengeConfig.timeout,
+            message: 'Please complete the verification challenge to continue',
+          });
+        }
+
+        logger.info('Challenge action issued', {
+          sessionId: context.sessionId,
+          ipAddress: context.ipAddress,
+          riskScore: context.riskScore,
+          challengeType: challengeConfig.type,
+          challengeToken,
+        });
+
+        return { challenged: true, challengeType: challengeConfig.type, challengeToken };
+      });
+
+      return {
+        success: true,
+        latency,
+        metadata: {
+          challenged: result.challenged,
+          challengeType: result.challengeType,
+          challengeToken: result.challengeToken,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        latency: 0,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+}
+
+/**
  * Response Action Factory
  */
 export class ResponseActionFactory {
   static createAction(actionType: ResponseActionType, config: ResponseActionConfig): BaseResponseAction {
     switch (actionType) {
+      case 'allow':
+        return new AllowAction(config);
       case 'log_only':
         return new LogOnlyAction(config);
       case 'rate_limit':
@@ -317,6 +458,10 @@ export class ResponseActionFactory {
         return new TemporaryBlockAction(config);
       case 'alert_admin':
         return new AlertAdminAction(config);
+      case 'challenge_response':
+        return new ChallengeAction(config);
+      case 'divert':
+        return new DivertAction(config);
       default:
         throw new Error(`Unsupported response action type: ${actionType}`);
     }
