@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,7 +22,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
+	"github.com/segmentio/kafka-go"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -144,11 +148,14 @@ type SecurityServer struct {
 	clientsMux  sync.RWMutex
 	ctx         context.Context
 	cancel      context.CancelFunc
+	grpcServer  *grpc.Server
+	kafkaClient *KafkaClient
 }
 
 // Config represents server configuration
 type Config struct {
 	Port            int    `json:"port"`
+	GrpcPort        int    `json:"grpc_port"`
 	DatabaseURL     string `json:"database_url"`
 	RedisURL        string `json:"redis_url"`
 	LogLevel        string `json:"log_level"`
@@ -157,6 +164,7 @@ type Config struct {
 	RateLimitMax    int    `json:"rate_limit_max"`
 	EnableMetrics   bool   `json:"enable_metrics"`
 	EnableTracing   bool   `json:"enable_tracing"`
+	KafkaBrokers    string `json:"kafka_brokers"`
 }
 
 // ThreatEngine handles threat detection logic
@@ -274,6 +282,18 @@ func main() {
 	go server.startThreatSignatureUpdater()
 	go server.startAnomalyBaslineUpdater()
 
+	// Start gRPC server
+	go func() {
+		if err := server.startGRPCServer(); err != nil {
+			logger.WithError(err).Warn("gRPC server failed to start (may be disabled)")
+		}
+	}()
+
+	// Start Kafka consumer
+	if config.KafkaBrokers != "" {
+		server.startKafka()
+	}
+
 	// Start HTTP server
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", config.Port),
@@ -313,6 +333,7 @@ func main() {
 func loadConfig() *Config {
 	config := &Config{
 		Port:            8080,
+		GrpcPort:        getEnvInt("GRPC_PORT", 8081),
 		DatabaseURL:     os.Getenv("DATABASE_URL"),
 		RedisURL:        os.Getenv("REDIS_URL"),
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
@@ -321,6 +342,7 @@ func loadConfig() *Config {
 		RateLimitMax:    getEnvInt("RATE_LIMIT_MAX", 100),
 		EnableMetrics:   getEnvBool("ENABLE_METRICS", true),
 		EnableTracing:   getEnvBool("ENABLE_TRACING", false),
+		KafkaBrokers:    getEnv("KAFKA_BROKERS", "localhost:9092"),
 	}
 
 	if port := getEnvInt("PORT", 0); port != 0 {
@@ -633,6 +655,50 @@ func (te *ThreatEngine) analyzeStatistics(request *ThreatAnalysisRequest) float6
 func (te *ThreatEngine) analyzeReputation(request *ThreatAnalysisRequest) float64 {
 	// IP reputation analysis implementation
 	return 0.1
+}
+
+// startGRPCServer starts the gRPC server on the configured port.
+func (s *SecurityServer) startGRPCServer() error {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", s.config.GrpcPort))
+	if err != nil {
+		return fmt.Errorf("failed to listen on gRPC port %d: %w", s.config.GrpcPort, err)
+	}
+
+	s.grpcServer = grpc.NewServer(
+		grpc.UnaryInterceptor(s.grpcUnaryInterceptor),
+	)
+
+	// Register the ThreatAnalysis service once protobuf stubs are generated.
+	// pb.RegisterThreatAnalysisServer(s.grpcServer, s)
+
+	reflection.Register(s.grpcServer)
+
+	s.logger.WithField("port", s.config.GrpcPort).Info("gRPC server started")
+	return s.grpcServer.Serve(lis)
+}
+
+// grpcUnaryInterceptor provides logging for gRPC calls.
+func (s *SecurityServer) grpcUnaryInterceptor(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (interface{}, error) {
+	start := time.Now()
+	resp, err := handler(ctx, req)
+	s.logger.WithFields(logrus.Fields{
+		"method":   info.FullMethod,
+		"duration": time.Since(start).String(),
+	}).Debug("gRPC call")
+	return resp, err
+}
+
+// startKafka initializes the Kafka client and starts consuming events.
+func (s *SecurityServer) startKafka() {
+	brokers := strings.Split(s.config.KafkaBrokers, ",")
+	s.kafkaClient = NewKafkaClient(brokers, "phantom-flow-go", s.logger)
+	s.kafkaClient.StartConsumer(s.threatEngine)
+	s.logger.WithField("brokers", s.config.KafkaBrokers).Info("Kafka client started")
 }
 
 // Utility functions

@@ -231,8 +231,10 @@ services:
     container_name: phantom-flow-go-server
     ports:
       - "8080:8080"
+      - "8081:8081"
     environment:
       PORT: 8080
+      GRPC_PORT: 8081
       GIN_MODE: release
       REDIS_URL: redis://redis:6379
       KAFKA_BROKERS: kafka:9092
