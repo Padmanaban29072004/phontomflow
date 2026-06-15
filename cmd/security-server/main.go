@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -22,8 +21,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
-	"github.com/segmentio/kafka-go"
-	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"gorm.io/driver/postgres"
@@ -280,7 +277,7 @@ func main() {
 	// Start background services
 	go server.startMetricsCollector()
 	go server.startThreatSignatureUpdater()
-	go server.startAnomalyBaslineUpdater()
+	go server.startAnomalyBaselineUpdater()
 
 	// Start gRPC server
 	go func() {
@@ -729,4 +726,131 @@ func getEnvBool(key string, defaultValue bool) bool {
 
 func generateRequestID() string {
 	return fmt.Sprintf("req_%d", time.Now().UnixNano())
+}
+
+// Stub methods for compilation (pre-existing missing implementations)
+
+func (s *SecurityServer) startMetricsCollector() {
+	s.logger.Info("Metrics collector started (stub)")
+}
+
+func (s *SecurityServer) startThreatSignatureUpdater() {
+	s.logger.Info("Threat signature updater started (stub)")
+}
+
+func (s *SecurityServer) startAnomalyBaselineUpdater() {
+	s.logger.Info("Anomaly baseline updater started (stub)")
+}
+
+func (s *SecurityServer) collectMetrics() map[string]interface{} {
+	return map[string]interface{}{
+		"status": "stub",
+	}
+}
+
+func (s *SecurityServer) broadcastThreatUpdate(response *ThreatAnalysisResponse) {}
+
+func (te *ThreatEngine) analyzeGeography(request *ThreatAnalysisRequest) float64 {
+	return 0.0
+}
+
+func (te *ThreatEngine) analyzeTechnical(request *ThreatAnalysisRequest) float64 {
+	return 0.0
+}
+
+func (te *ThreatEngine) predictWithML(request *ThreatAnalysisRequest) float64 {
+	return 0.0
+}
+
+func (ae *AnomalyEngine) detectAnomalies(request *ThreatAnalysisRequest) AnomalyResult {
+	return AnomalyResult{}
+}
+
+func (te *ThreatEngine) matchPatterns(request *ThreatAnalysisRequest) PatternMatchingResult {
+	return PatternMatchingResult{}
+}
+
+func (te *ThreatEngine) analyzeRateLimit(request *ThreatAnalysisRequest) RateLimitResult {
+	return RateLimitResult{}
+}
+
+func (te *ThreatEngine) analyzeDeception(request *ThreatAnalysisRequest) DeceptionResult {
+	return DeceptionResult{}
+}
+
+func (te *ThreatEngine) calculateThreatScore(analysis *ThreatAnalysis) float64 {
+	return analysis.BehavioralScore + analysis.StatisticalScore + analysis.ReputationScore +
+		analysis.GeographicScore + analysis.TechnicalScore
+}
+
+func (te *ThreatEngine) determineRiskLevel(score float64) string {
+	switch {
+	case score >= 0.8:
+		return "critical"
+	case score >= 0.6:
+		return "high"
+	case score >= 0.4:
+		return "medium"
+	case score >= 0.2:
+		return "low"
+	default:
+		return "info"
+	}
+}
+
+func (te *ThreatEngine) generateRecommendation(score float64, analysis *ThreatAnalysis) string {
+	if score >= 0.6 {
+		return "block"
+	} else if score >= 0.3 {
+		return "challenge"
+	}
+	return "allow"
+}
+
+func (te *ThreatEngine) identifyThreatTypes(analysis *ThreatAnalysis) []string {
+	if analysis.AnomalyDetection.IsAnomalous {
+		return []string{"anomaly"}
+	}
+	return []string{}
+}
+
+func (te *ThreatEngine) calculateConfidence(analysis *ThreatAnalysis) float64 {
+	return 0.85
+}
+
+func (te *ThreatEngine) loadDefaultSignatures() {
+	te.signatures = append(te.signatures, ThreatSignature{
+		ID:   "SIG-001",
+		Name: "SQL Injection",
+		Pattern: "(?i)(select|union|drop|insert|delete|update).*from",
+		Severity: "high",
+		Category: "injection",
+		Description: "SQL injection attempt",
+		CreatedAt: time.Now(),
+		Enabled: true,
+	})
+}
+
+func (s *SecurityServer) handleAddSignature(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+}
+
+func (s *SecurityServer) handleListSignatures(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"signatures": s.threatEngine.signatures})
+}
+
+func (s *SecurityServer) handleUpdateSignature(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+}
+
+func (s *SecurityServer) handleDeleteSignature(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+}
+
+func (s *SecurityServer) handleGetBaselines(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"baselines": map[string]Baseline{}})
+}
+
+func (s *SecurityServer) handleUpdateBaselines(c *gin.Context) {
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
 }

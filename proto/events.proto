@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package phantom_flow.events;
 
+option go_package = "github.com/phantom-flow/security-platform/proto/events";
+
 message ThreatDetectedEvent {
   string event_id = 1;
   string request_id = 2;

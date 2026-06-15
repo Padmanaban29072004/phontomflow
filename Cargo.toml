@@ -26,8 +26,15 @@ sha2 = "0.10"
 sha3 = "0.10"
 blake3 = "1.5"
 hex = "0.4"
-ring = "0.16"
-rustls = "0.21"
+aes-gcm = "0.10"
+chacha20poly1305 = "0.10"
+rand = "0.8"
+argon2 = "0.5"
+scrypt = "0.11"
+pbkdf2 = "0.12"
+num_cpus = "1.16"
+ring = { version = "0.16", optional = true }
+rustls = { version = "0.21", optional = true }
 webpki-roots = "0.25"
 
 # Data structures and algorithms
@@ -55,13 +62,13 @@ config = "0.13"
 clap = { version = "4.4", features = ["derive"] }
 
 # Machine Learning (Rust-native)
-candle-core = "0.3"
-candle-nn = "0.3"
-tch = "0.13"
+candle-core = { version = "0.3", optional = true }
+candle-nn = { version = "0.3", optional = true }
+tch = { version = "0.13", optional = true }
 
 # Network security
-pcap = "1.0"
-pnet = "0.34"
+pcap = { version = "1.0", optional = true }
+pnet = { version = "0.34", optional = true }
 
 # Regex and text processing
 regex = "1.10"
@@ -73,7 +80,7 @@ prost = "0.11"
 tokio-stream = "0.1"
 
 # Kafka
-rdkafka = { version = "0.34", features = ["tokio", "vendored"] }
+rdkafka = { version = "0.34", features = ["tokio", "cmake_build"] }
 
 # Error handling
 anyhow = "1.0"
@@ -96,6 +103,7 @@ path = "src/main.rs"
 [[bench]]
 name = "security_benchmarks"
 harness = false
+path = "benches/security_benchmarks.rs"
 
 [profile.release]
 lto = true
@@ -104,7 +112,7 @@ panic = "abort"
 strip = true
 
 [features]
-default = ["full"]
+default = ["crypto"]
 full = ["ml", "network", "crypto"]
 ml = ["candle-core", "candle-nn", "tch"]
 network = ["pcap", "pnet"]

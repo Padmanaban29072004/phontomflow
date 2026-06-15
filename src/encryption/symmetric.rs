@@ -12,7 +12,7 @@ use rand::rngs::OsRng;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SymmetricEngine {
-    algorithms: HashMap<EncryptionAlgorithm, Box<dyn EncryptionAlgorithm + Send + Sync>>,
+    algorithms: HashMap<EncryptionAlgorithm, Box<dyn EncryptionAlgoTrait + Send + Sync>>,
     default_algorithm: EncryptionAlgorithm,
     key_derivation: KeyDerivationConfig,
 }
@@ -64,7 +64,7 @@ pub struct KeyInfo {
     pub metadata: HashMap<String, String>,
 }
 
-pub trait EncryptionAlgorithm {
+pub trait EncryptionAlgoTrait {
     fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<EncryptionResult, EncryptionError>;
     fn decrypt(&self, ciphertext: &[u8], key: &[u8], nonce: &[u8]) -> Result<DecryptionResult, EncryptionError>;
     fn get_key_length(&self) -> usize;
@@ -74,7 +74,7 @@ pub trait EncryptionAlgorithm {
 
 pub struct Aes256GcmImpl;
 
-impl EncryptionAlgorithm for Aes256GcmImpl {
+impl EncryptionAlgoTrait for Aes256GcmImpl {
     fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<EncryptionResult, EncryptionError> {
         if key.len() != 32 {
             return Err(EncryptionError::InvalidKeyLength);
@@ -147,7 +147,7 @@ impl Aes256GcmImpl {
 
 pub struct ChaCha20Poly1305Impl;
 
-impl EncryptionAlgorithm for ChaCha20Poly1305Impl {
+impl EncryptionAlgoTrait for ChaCha20Poly1305Impl {
     fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Result<EncryptionResult, EncryptionError> {
         if key.len() != 32 {
             return Err(EncryptionError::InvalidKeyLength);
@@ -220,7 +220,7 @@ impl ChaCha20Poly1305Impl {
 
 impl SymmetricEngine {
     pub fn new(config: KeyDerivationConfig) -> Self {
-        let mut algorithms: HashMap<EncryptionAlgorithm, Box<dyn EncryptionAlgorithm + Send + Sync>> = HashMap::new();
+        let mut algorithms: HashMap<EncryptionAlgorithm, Box<dyn EncryptionAlgoTrait + Send + Sync>> = HashMap::new();
         
         algorithms.insert(EncryptionAlgorithm::AES256GCM, Box::new(Aes256GcmImpl));
         algorithms.insert(EncryptionAlgorithm::ChaCha20Poly1305, Box::new(ChaCha20Poly1305Impl));

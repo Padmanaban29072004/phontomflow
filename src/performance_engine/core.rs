@@ -408,7 +408,7 @@ pub enum OptimizationLevel {
 #[derive(Debug)]
 pub struct CryptoProcessor {
     hash_engines: HashMap<HashAlgorithm, Box<dyn HashEngine + Send + Sync>>,
-    encryption_engines: HashMap<EncryptionAlgorithm, Box<dyn EncryptionEngine + Send + Sync>>,
+    encryption_engines: HashMap<SecurityAlgorithm, Box<dyn EncryptionEngine + Send + Sync>>,
     signature_verifier: SignatureVerifier,
     random_generator: SecureRandomGenerator,
     key_manager: KeyManager,
@@ -424,9 +424,9 @@ pub enum HashAlgorithm {
     Sha1,
 }
 
-/// Encryption algorithm enumeration
+/// Security algorithm enumeration
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum EncryptionAlgorithm {
+pub enum SecurityAlgorithm {
     Aes256,
     ChaCha20,
     Aes128,

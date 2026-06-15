@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package phantom_flow.threat;
 
+option go_package = "github.com/phantom-flow/security-platform/proto/threat";
+
 service ThreatAnalysis {
   rpc AnalyzeThreat(ThreatRequest) returns (ThreatResponse);
 }

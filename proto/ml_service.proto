@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package phantom_flow.ml;
 
+option go_package = "github.com/phantom-flow/security-platform/proto/ml";
+
 service MLInference {
   rpc Predict(PredictRequest) returns (PredictResponse);
 }

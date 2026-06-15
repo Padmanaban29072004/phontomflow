@@ -1,0 +1,6 @@
+[runtime]
+go = "1.26.4"
+
+[packages]
+# Add your dependencies here
+# express = "^4.18.2"

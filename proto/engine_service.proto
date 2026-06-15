@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package phantom_flow.engine;
 
+option go_package = "github.com/phantom-flow/security-platform/proto/engine";
+
 service SecurityEngine {
   rpc Analyze(SecurityRequest) returns (SecurityResponse);
 }

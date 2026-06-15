@@ -185,3 +185,7 @@ jspm_packages/
 # Vuepress build output
 .vuepress/dist
 .serena/
+phantom-promo/
+.claude/
+target/
+*.exe

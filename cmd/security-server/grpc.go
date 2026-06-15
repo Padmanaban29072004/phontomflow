@@ -1,5 +1,3 @@
-//go:generate protoc -I ../../proto --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative ../../proto/threat_service.proto
-
 package main
 
 import (
@@ -8,12 +6,14 @@ import (
 	"net"
 	"time"
 
+	pb "github.com/phantom-flow/security-platform/proto/threat"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 type gRPCServer struct {
+	pb.UnimplementedThreatAnalysisServer
 	server   *grpc.Server
 	engine   *ThreatEngine
 	logger   *logrus.Logger
@@ -38,14 +38,7 @@ func (s *gRPCServer) Start(port int) error {
 		grpc.UnaryInterceptor(s.unaryInterceptor),
 	)
 
-	// Register the ThreatAnalysis service
-	// This requires generated protobuf code from:
-	// protoc -I ../../proto --go_out=. --go_opt=paths=source_relative
-	//   --go-grpc_out=. --go-grpc_opt=paths=source_relative
-	//   ../../proto/threat_service.proto
-	//
-	// Once generated:
-	//   pb.RegisterThreatAnalysisServer(s.server, s)
+	pb.RegisterThreatAnalysisServer(s.server, s)
 
 	reflection.Register(s.server)
 
@@ -69,26 +62,36 @@ func (s *gRPCServer) Stop() {
 	}
 }
 
-// AnalyzeThreat implements the gRPC ThreatAnalysis.AnalyzeThreat RPC.
-// This method is wired to the generated protobuf service once stubs are generated.
-func (s *gRPCServer) AnalyzeThreat(ctx context.Context, req *ThreatAnalysisRequest) (*ThreatAnalysisResponse, error) {
-	startTime := time.Now()
-
-	if req.Timestamp.IsZero() {
-		req.Timestamp = time.Now()
+func (s *gRPCServer) AnalyzeThreat(ctx context.Context, req *pb.ThreatRequest) (*pb.ThreatResponse, error) {
+	threatReq := &ThreatAnalysisRequest{
+		IPAddress:   req.GetClientIp(),
+		UserAgent:   req.GetUserAgent(),
+		Method:      req.GetRequestMethod(),
+		RequestPath: req.GetRequestPath(),
+		Headers:     req.GetHeaders(),
+		SessionID:   req.GetSessionId(),
+		Timestamp:   time.Now(),
 	}
 
-	response, err := s.engine.AnalyzeThreat(ctx, req)
+	response, err := s.engine.AnalyzeThreat(ctx, threatReq)
 	if err != nil {
 		s.logger.WithError(err).Error("gRPC threat analysis failed")
 		return nil, err
 	}
 
-	response.ProcessingTime = time.Since(startTime).Seconds()
-	response.RequestID = generateRequestID()
-	response.Timestamp = time.Now()
+	var threatType string
+	if len(response.ThreatTypes) > 0 {
+		threatType = response.ThreatTypes[0]
+	}
 
-	return response, nil
+	return &pb.ThreatResponse{
+		Success:           true,
+		ThreatScore:       response.ThreatScore,
+		Confidence:        response.Confidence,
+		RiskLevel:         response.RiskLevel,
+		ThreatType:        threatType,
+		SignaturesMatched: nil,
+	}, nil
 }
 
 func (s *gRPCServer) unaryInterceptor(
