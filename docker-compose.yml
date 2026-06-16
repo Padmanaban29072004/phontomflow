@@ -168,6 +168,7 @@ services:
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic attack-observed --partitions 3 --replication-factor 1
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic model-updated --partitions 3 --replication-factor 1
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic honeypot-triggered --partitions 3 --replication-factor 1
+      kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic phontomflow.unified.events.v1 --partitions 3 --replication-factor 1
       echo 'Topics created successfully'
       "
     depends_on:
