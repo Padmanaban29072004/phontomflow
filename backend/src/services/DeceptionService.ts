@@ -358,6 +358,54 @@ export class DeceptionService {
   }
 
   /**
+   * Create a new deception trap
+   */
+  public async createTrap(config: { type: string; path?: string; credential?: string; filename?: string }): Promise<void> {
+    const id = config.path || config.credential || config.filename || `trap_${Date.now()}`;
+    this.activeTraps.set(id, {
+      type: config.type,
+      accessCount: 0,
+      created: new Date(),
+    });
+    await this.redisService.set(`deception:trap:${id}`, JSON.stringify(config), 0);
+  }
+
+  /**
+   * Update an existing deception trap
+   */
+  public async updateTrap(id: string, updates: Record<string, any>): Promise<void> {
+    const existing = this.activeTraps.get(id);
+    if (!existing) throw new Error(`Trap ${id} not found`);
+    Object.assign(existing, updates);
+    this.activeTraps.set(id, existing);
+  }
+
+  /**
+   * Delete a deception trap
+   */
+  public async deleteTrap(id: string): Promise<void> {
+    if (!this.activeTraps.has(id)) throw new Error(`Trap ${id} not found`);
+    this.activeTraps.delete(id);
+    await this.redisService.del(`deception:trap:${id}`);
+  }
+
+  /**
+   * Generic event trigger — routes to the correct recorder based on type
+   */
+  public async triggerEvent(type: string, data: { ipAddress: string; userAgent: string; details: Record<string, any> }): Promise<DeceptionEvent> {
+    if (type === 'honeypot_access') {
+      return this.recordHoneypotAccess(data.details.path || '/unknown', data.ipAddress, data.userAgent, data.details);
+    }
+    if (type === 'credential_trap') {
+      return this.recordCredentialTrap(data.details.credential || 'unknown', data.ipAddress, data.userAgent, data.details);
+    }
+    if (type === 'decoy_file_access') {
+      return this.recordDecoyFileAccess(data.details.filename || 'unknown', data.ipAddress, data.userAgent, data.details);
+    }
+    return this.recordHoneypotAccess('/manual', data.ipAddress, data.userAgent, data.details);
+  }
+
+  /**
    * Get active traps
    */
   public getActiveTraps(): Map<string, any> {

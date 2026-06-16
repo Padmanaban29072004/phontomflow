@@ -14,7 +14,7 @@ import { AdaptiveLearningService, LearningConfig } from '@/services/AdaptiveLear
 import { authRoutes } from '@/api/routes/auth';
 import { threatRoutes } from '@/api/routes/threats';
 import { dashboardRoutes } from '@/api/routes/dashboard';
-import { deceptionRoutes } from '@/api/routes/deception';
+import { createDeceptionRouter } from '@/api/routes/deception';
 import { metricsRoutes } from '@/api/routes/metrics';
 import { docsRoutes } from '@/api/routes/docs';
 import { influxdbRoutes } from '@/api/routes/influxdb';
@@ -166,7 +166,6 @@ class PhantomFlowServer {
     this.app.use('/api/auth', authRoutes);
     this.app.use('/api/threats', threatRoutes);
     this.app.use('/api/dashboard', dashboardRoutes);
-    this.app.use('/api/deception', deceptionRoutes);
     this.app.use('/api/metrics', metricsRoutes);
     this.app.use('/api/docs', docsRoutes);
     this.app.use('/api/influxdb', influxdbRoutes);
@@ -422,6 +421,9 @@ class PhantomFlowServer {
     this.banditRoutes = createBanditRouter(this.adaptiveDecisionEngine, this.feedbackCollector);
     this.app.use('/api/bandit', this.banditRoutes);
     logger.info('🎰 Bandit API routes mounted at /api/bandit');
+
+    this.app.use('/api/deception', createDeceptionRouter(this.deceptionService));
+    logger.info('Deception API routes mounted at /api/deception');
 
     // Initialize gRPC clients
     this.grpcClients = new GrpcClients();
