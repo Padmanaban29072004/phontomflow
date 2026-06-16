@@ -282,5 +282,59 @@ export const graphApi = {
     api.get(`/graph/export/${framework}`),
 }
 
+export interface BanditStatsEntry {
+  alpha: number
+  beta: number
+  selectionCount: number
+  avgReward: number
+}
+
+export interface BanditStats {
+  actions: Record<string, BanditStatsEntry>
+  context: string
+  totalSelections: number
+  currentBestAction: string | null
+  bestActionProbability: number
+}
+
+export interface BanditConfiguration {
+  enabled: boolean
+  explorationRate: number
+  warmStartPriors: Record<string, { alpha: number; beta: number }>
+  rewardWeights: Record<string, number>
+  minSamples: number
+  persistInterval: number
+  banditType: string
+}
+
+export interface FeedbackEvent {
+  action: string
+  context: { threatBucket: string; reputationTier: string }
+  signals: string[]
+  reward: number
+  timestamp: string
+  sessionId?: string
+  userId?: string
+}
+
+export interface BanditStatsResponse {
+  contexts: Record<string, BanditStats>
+  feedback: { totalFeedback: number; signalCounts: Record<string, number>; recentRewardAvg: number }
+  config: BanditConfiguration
+}
+
+export const banditApi = {
+  stats: (context?: string) =>
+    api.get<ApiResponse<BanditStatsResponse>>('/bandit/stats', { params: context ? { context } : {} }),
+  actions: () =>
+    api.get<ApiResponse<{ actions: { id: string; description: string; severity: number }[]; contextBuckets: string[] }>>('/bandit/actions'),
+  submitFeedback: (action: string, context: { threatBucket: string; reputationTier: string }, signals: string[], sessionId?: string, userId?: string) =>
+    api.post<ApiResponse<{ reward: number; action: string; context: unknown }>>('/bandit/feedback', { action, context, signals, sessionId, userId }),
+  recentFeedback: (count = 20) =>
+    api.get<ApiResponse<FeedbackEvent[]>>('/bandit/feedback', { params: { count } }),
+  reset: () =>
+    api.post<ApiResponse<{ message: string }>>('/bandit/reset'),
+}
+
 export { TOKEN_KEY }
 export default api

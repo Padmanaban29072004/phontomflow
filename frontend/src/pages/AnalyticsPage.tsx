@@ -20,6 +20,7 @@ import {
   STATIC_THREAT_TYPE_DATA,
   STATIC_RISK_DISTRIBUTION_DATA,
 } from '../services/mockData'
+import { BanditPerformancePanel } from '../components/analytics/BanditPerformancePanel'
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6']
 
@@ -29,18 +30,6 @@ export const AnalyticsPage: React.FC = () => {
     () =>
       api.get('/dashboard/analytics').catch(() => {
         return { data: null }
-      }),
-    {
-      refetchInterval: 30000,
-      retry: 1,
-    }
-  )
-
-  useQuery(
-    'bandit-stats',
-    () =>
-      api.get('/bandit/stats').catch(() => {
-        return { data: { data: { contexts: {} } } }
       }),
     {
       refetchInterval: 30000,
@@ -131,13 +120,7 @@ export const AnalyticsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-shrink-0 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Bandit Performance</h2>
-        <p className="text-sm text-gray-500">
-          Arm win rates and reward trends are available via <code>/api/bandit/stats</code>. This panel is wired for
-          adaptive response learning visibility.
-        </p>
-      </div>
+      <BanditPerformancePanel />
     </div>
   )
 }
