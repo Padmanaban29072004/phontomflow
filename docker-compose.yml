@@ -173,7 +173,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-    <<: *restart-policy
+    restart: "no"
     logging: *default-logging
     networks:
       - backend
