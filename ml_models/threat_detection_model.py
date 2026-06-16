@@ -451,22 +451,26 @@ class AdvancedThreatDetectionModel:
     
     def load_models(self, filepath: str):
         """Load trained models from disk"""
-        # Load main model data
-        model_data = joblib.load(f"{filepath}_models.pkl")
-        
-        self.scalers = model_data['scalers']
-        self.encoders = model_data['encoders']
-        self.config = model_data['config']
-        self.is_trained = model_data['is_trained']
-        self.models = model_data['models']
+        try:
+            model_data = joblib.load(f"{filepath}_models.pkl")
+            self.scalers = model_data['scalers']
+            self.encoders = model_data['encoders']
+            self.config = model_data['config']
+            self.is_trained = model_data['is_trained']
+            self.models = model_data['models']
+            logger.info(f"Models loaded from {filepath}")
+        except FileNotFoundError:
+            logger.warning(f"Model file not found at {filepath}_models.pkl, using untrained models")
+            self.is_trained = False
+        except Exception as e:
+            logger.warning(f"Failed to load models from {filepath}: {e}")
+            self.is_trained = False
         
         # Load TensorFlow model
         try:
             self.models['neural_network'] = tf.keras.models.load_model(f"{filepath}_neural_network.h5")
         except:
             logger.warning("Neural network model not found or could not be loaded")
-        
-        logger.info(f"Models loaded from {filepath}")
 
 class RealTimeThreatDetector:
     """Real-time threat detection system using trained ML models"""

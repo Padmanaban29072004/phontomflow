@@ -96,12 +96,17 @@ class AdvancedThreatIntelligenceSystem:
         logger.info("Initializing NLP models...")
         
         # Load pre-trained BERT model for cybersecurity text analysis
-        self.tokenizers['bert'] = AutoTokenizer.from_pretrained(
-            'bert-base-uncased'
-        )
-        self.models['bert'] = AutoModel.from_pretrained(
-            'bert-base-uncased'
-        )
+        try:
+            self.tokenizers['bert'] = AutoTokenizer.from_pretrained(
+                'bert-base-uncased'
+            )
+            self.models['bert'] = AutoModel.from_pretrained(
+                'bert-base-uncased'
+            )
+        except Exception as e:
+            logger.warning(f"BERT model could not be loaded: {e}")
+            self.tokenizers['bert'] = None
+            self.models['bert'] = None
         
         # Load spaCy model for named entity recognition
         try:
@@ -111,10 +116,14 @@ class AdvancedThreatIntelligenceSystem:
             self.nlp_pipeline = None
         
         # Initialize sentiment analysis pipeline
-        self.models['sentiment'] = pipeline(
-            "sentiment-analysis",
-            model="cardiffnlp/twitter-roberta-base-sentiment-latest"
-        )
+        try:
+            self.models['sentiment'] = pipeline(
+                "sentiment-analysis",
+                model="cardiffnlp/twitter-roberta-base-sentiment-latest"
+            )
+        except Exception as e:
+            logger.warning(f"Sentiment model could not be loaded: {e}")
+            self.models['sentiment'] = None
         
         # Initialize TF-IDF vectorizer for text features
         self.models['tfidf'] = TfidfVectorizer(
