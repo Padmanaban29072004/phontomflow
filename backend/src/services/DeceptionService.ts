@@ -1,12 +1,25 @@
 import { logger } from '@/utils/logger';
 import { RedisService } from './RedisService';
 
+export type HoneypotEventPayload = {
+  eventId: string;
+  honeypotId: string;
+  honeypotType: string;
+  clientIp: string;
+  endpoint: string;
+  userAgent: string;
+  threatLevel: number;
+  sourceService: string;
+  timestampUnixMs: number;
+}
+
 export interface DeceptionConfig {
   enabled: boolean;
   honeypotEndpoints: string[];
   fakeCredentials: string[];
   decoyFiles: string[];
   trapThreshold: number;
+  onHoneypotTriggered?: (payload: HoneypotEventPayload) => void;
 }
 
 export interface DeceptionEvent {
@@ -138,6 +151,21 @@ export class DeceptionService {
       userAgent,
       threatLevel: event.threatLevel
     });
+
+    if (this.config.onHoneypotTriggered) {
+      const tlMap: Record<string, number> = { low: 0.25, medium: 0.5, high: 0.75, critical: 1.0 };
+      this.config.onHoneypotTriggered({
+        eventId: event.id,
+        honeypotId: `honeypot:${path.replace(/\//g, '_')}`,
+        honeypotType: event.type,
+        clientIp: ipAddress,
+        endpoint: path,
+        userAgent,
+        threatLevel: tlMap[event.threatLevel] ?? 0.5,
+        sourceService: 'phantom-flow-deception',
+        timestampUnixMs: Date.now(),
+      });
+    }
 
     return event;
   }

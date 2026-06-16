@@ -29,3 +29,39 @@ message ResponseExecutedEvent {
   string source_service = 9;
   int64 timestamp_unix_ms = 10;
 }
+
+message AttackObservedEvent {
+  string event_id = 1;
+  string request_id = 2;
+  string client_ip = 3;
+  double threat_score = 4;
+  string risk_level = 5;
+  string attack_pattern = 6;
+  string target_path = 7;
+  string source_service = 8;
+  int64 timestamp_unix_ms = 9;
+}
+
+message ModelUpdatedEvent {
+  string event_id = 1;
+  string model_name = 2;
+  string model_version = 3;
+  double accuracy_before = 4;
+  double accuracy_after = 5;
+  int32 training_samples = 6;
+  double training_duration_sec = 7;
+  string source_service = 8;
+  int64 timestamp_unix_ms = 9;
+}
+
+message HoneypotTriggeredEvent {
+  string event_id = 1;
+  string honeypot_id = 2;
+  string honeypot_type = 3;
+  string client_ip = 4;
+  string endpoint = 5;
+  string user_agent = 6;
+  double threat_level = 7;
+  string source_service = 8;
+  int64 timestamp_unix_ms = 9;
+}

@@ -243,6 +243,21 @@ class PhantomFlowServer {
             threatScore: assessment.threatScore,
             sessionId: assessment.sessionId
           });
+
+          // Publish AttackObserved event (fire-and-forget)
+          if (this.kafkaBus) {
+            this.kafkaBus.publish('attack-observed', {
+              eventId: uuidv4(),
+              requestId: assessment.sessionId || uuidv4(),
+              clientIp: assessment.ipAddress,
+              threatScore: assessment.threatScore,
+              riskLevel: assessment.riskLevel,
+              attackPattern: Array.isArray(assessment.threatType) ? assessment.threatType.join(',') : 'critical',
+              targetPath: assessment.requestPath || '',
+              sourceService: 'phantom-flow-backend',
+              timestampUnixMs: Date.now(),
+            }).catch(() => {/* fire-and-forget */});
+          }
           
           // Redirect to deception environment for critical threats
           const deceptionUrl = await this.deceptionService.createDeceptionEnvironment(assessment);
@@ -360,7 +375,12 @@ class PhantomFlowServer {
       honeypotEndpoints: ['/admin', '/api/admin', '/internal', '/debug'],
       fakeCredentials: ['admin:admin123', 'root:password', 'test:test123'],
       decoyFiles: ['config.json', 'database.sql', 'secrets.txt'],
-      trapThreshold: 0.8
+      trapThreshold: 0.8,
+      onHoneypotTriggered: (payload) => {
+        if (this.kafkaBus) {
+          this.kafkaBus.publish('honeypot-triggered', payload).catch(() => {});
+        }
+      },
     };
     this.deceptionService = new DeceptionService(this.redisService, deceptionConfig);
     
@@ -432,6 +452,19 @@ class PhantomFlowServer {
       try {
         await this.adaptiveLearningService.retrainModels();
         logger.info('Periodic model retraining completed');
+        if (this.kafkaBus) {
+          this.kafkaBus.publish('model-updated', {
+            eventId: uuidv4(),
+            modelName: 'adaptive-threat-detector',
+            modelVersion: `v${Date.now()}`,
+            accuracyBefore: 0,
+            accuracyAfter: 0,
+            trainingSamples: 0,
+            trainingDurationSec: 0,
+            sourceService: 'phantom-flow-backend',
+            timestampUnixMs: Date.now(),
+          }).catch(() => {/* fire-and-forget */});
+        }
       } catch (error) {
         logger.error('Error in periodic model retraining:', error);
       }
