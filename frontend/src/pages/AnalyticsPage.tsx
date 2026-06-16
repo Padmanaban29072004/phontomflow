@@ -37,6 +37,18 @@ export const AnalyticsPage: React.FC = () => {
   )
 
   useQuery(
+    'bandit-stats',
+    () =>
+      api.get('/bandit/stats').catch(() => {
+        return { data: { data: { contexts: {} } } }
+      }),
+    {
+      refetchInterval: 30000,
+      retry: 1,
+    }
+  )
+
+  useQuery(
     'metrics',
     () =>
       api.get('/metrics/analytics').catch(() => {
@@ -117,6 +129,14 @@ export const AnalyticsPage: React.FC = () => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
+
+      <div className="flex-shrink-0 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">Bandit Performance</h2>
+        <p className="text-sm text-gray-500">
+          Arm win rates and reward trends are available via <code>/api/bandit/stats</code>. This panel is wired for
+          adaptive response learning visibility.
+        </p>
       </div>
     </div>
   )

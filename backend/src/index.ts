@@ -18,6 +18,8 @@ import { deceptionRoutes } from '@/api/routes/deception';
 import { metricsRoutes } from '@/api/routes/metrics';
 import { docsRoutes } from '@/api/routes/docs';
 import { influxdbRoutes } from '@/api/routes/influxdb';
+import { playbooksRoutes } from '@/api/routes/playbooks';
+import { l2Routes } from '@/api/routes/l2';
 import { Neo4jService } from '@/graph/Neo4jService';
 import { Neo4jIntegration } from '@/services/Neo4jIntegration';
 import { createGraphRouter } from '@/api/routes/graph';
@@ -168,11 +170,13 @@ class PhantomFlowServer {
     this.app.use('/api/metrics', metricsRoutes);
     this.app.use('/api/docs', docsRoutes);
     this.app.use('/api/influxdb', influxdbRoutes);
+    this.app.use('/api/playbooks', playbooksRoutes);
+    this.app.use('/api/l2', l2Routes);
 
     // Threat detection middleware for all API routes
     this.app.use('/api/*', async (req, res, next) => {
       // Skip threat detection for internal API routes (req.path is relative to /api mount)
-      const skipPaths = ['/graph', '/bandit', '/docs'];
+      const skipPaths = ['/graph', '/bandit', '/docs', '/playbooks', '/l2'];
       if (skipPaths.some(p => req.path.startsWith(p))) {
         return next();
       }
@@ -405,7 +409,12 @@ class PhantomFlowServer {
 
     // Initialize Kafka event bus
     this.kafkaBus = new KafkaBus();
-    await this.kafkaBus.connect();
+    try {
+      await this.kafkaBus.connect();
+    } catch (error) {
+      logger.warn('Kafka unavailable — continuing without event bus in current environment');
+      this.kafkaBus = undefined;
+    }
 
     // Initialize threat detection system
     this.initializeThreatDetection();
