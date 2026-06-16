@@ -9,6 +9,7 @@ use crossbeam_channel::{bounded, Receiver, Sender};
 pub struct WorkerPool {
     workers: Vec<Worker>,
     sender: Option<Sender<Job>>,
+    receiver: Option<Arc<Mutex<Receiver<Job>>>>,
     stats: Arc<Mutex<PoolStats>>,
 }
 
@@ -49,6 +50,7 @@ impl WorkerPool {
         WorkerPool {
             workers,
             sender: Some(sender),
+            receiver: Some(receiver),
             stats,
         }
     }
@@ -104,11 +106,9 @@ impl WorkerPool {
         
         if new_size > current_size {
             // Add more workers
-            if let Some(ref sender) = self.sender {
-                let receiver = Arc::new(Mutex::new(sender.clone()));
-                
+            if let Some(ref receiver) = self.receiver {
                 for id in current_size..new_size {
-                    self.workers.push(Worker::new(id, receiver.clone(), Arc::clone(&self.stats)));
+                    self.workers.push(Worker::new(id, Arc::clone(receiver), Arc::clone(&self.stats)));
                 }
             }
         } else if new_size < current_size {

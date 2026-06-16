@@ -62,7 +62,7 @@ pub struct ThreatSignature {
 }
 
 /// Categories of threats
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum ThreatCategory {
     SqlInjection,
     CrossSiteScripting,
@@ -694,6 +694,87 @@ impl SecurityEngine {
     fn get_throughput(&self) -> f64 {
         // Implementation would calculate current throughput
         0.0
+    }
+
+    async fn analyze_behavior(&self, _request: &SecurityAnalysisRequest) -> Result<BehavioralAnalysisResult, SecurityEngineError> {
+        Ok(BehavioralAnalysisResult {
+            behavior_score: 0.0,
+            is_anomalous: false,
+            deviation_metrics: HashMap::new(),
+            pattern_consistency: 1.0,
+            session_analysis: SessionAnalysisResult {
+                session_legitimacy: 1.0,
+                navigation_pattern: String::new(),
+                temporal_consistency: 1.0,
+                request_frequency_score: 0.0,
+                geographic_consistency_score: 1.0,
+            },
+            user_profiling: UserProfilingResult {
+                user_trust_score: 1.0,
+                profile_match_score: 1.0,
+                behavioral_deviation: 0.0,
+                historical_threat_score: 0.0,
+            },
+        })
+    }
+
+    async fn analyze_reputation(&self, _request: &SecurityAnalysisRequest) -> Result<ReputationAnalysisResult, SecurityEngineError> {
+        Ok(ReputationAnalysisResult {
+            reputation_score: 0.0,
+            threat_intelligence_matches: Vec::new(),
+            geographic_risk: 0.0,
+            asn_risk: 0.0,
+            historical_activity: HistoricalActivityResult {
+                activity_score: 1.0,
+                threat_history: Vec::new(),
+                behavioral_consistency: 1.0,
+                reputation_trend: 0.0,
+            },
+        })
+    }
+
+    async fn analyze_anomalies(&self, _request: &SecurityAnalysisRequest) -> Result<AnomalyDetectionResult, SecurityEngineError> {
+        Ok(AnomalyDetectionResult {
+            anomaly_score: 0.0,
+            is_anomalous: false,
+            anomaly_types: Vec::new(),
+            statistical_analysis: StatisticalAnalysisResult {
+                z_scores: HashMap::new(),
+                outlier_probability: 0.0,
+                distribution_fit: String::from("normal"),
+                baseline_deviation: 0.0,
+            },
+            ml_prediction: None,
+        })
+    }
+
+    async fn analyze_crypto(&self, request: &SecurityAnalysisRequest) -> Result<CryptoAnalysisResult, SecurityEngineError> {
+        self.crypto_engine.analyze_crypto(request).await
+    }
+
+    fn calculate_confidence(&self, signature_matches: &[SignatureMatch], behavioral_result: &BehavioralAnalysisResult, reputation_result: &ReputationAnalysisResult, anomaly_result: &AnomalyDetectionResult) -> f64 {
+        let signature_confidence = signature_matches.iter().map(|m| m.confidence).sum::<f64>() / signature_matches.len().max(1) as f64;
+        let behavioral_confidence = 1.0 - behavioral_result.user_profiling.behavioral_deviation;
+        let reputation_confidence = 1.0 - reputation_result.reputation_score.abs();
+        let anomaly_confidence = 1.0 - anomaly_result.anomaly_score;
+        (signature_confidence * 0.3 + behavioral_confidence * 0.25 + reputation_confidence * 0.25 + anomaly_confidence * 0.2).min(1.0)
+    }
+
+    fn identify_threat_types(&self, signature_matches: &[SignatureMatch], anomaly_result: &AnomalyDetectionResult) -> Vec<ThreatCategory> {
+        let mut types: Vec<ThreatCategory> = signature_matches.iter().map(|m| m.category).collect();
+        types.sort();
+        types.dedup();
+        types
+    }
+
+    fn determine_recommended_action(&self, _threat_score: f64, risk_level: &RiskLevel) -> RecommendedAction {
+        match risk_level {
+            RiskLevel::Critical => RecommendedAction::Quarantine,
+            RiskLevel::High => RecommendedAction::Block,
+            RiskLevel::Medium => RecommendedAction::Challenge,
+            RiskLevel::Low => RecommendedAction::Monitor,
+            RiskLevel::Minimal => RecommendedAction::Allow,
+        }
     }
 }
 

@@ -17,7 +17,9 @@ pub struct PatternMatcher {
 pub struct CompiledPattern {
     pub id: String,
     pub name: String,
-    pub regex: Regex,
+    #[serde(skip, default)]
+    pub regex: Option<Regex>,
+    pub pattern: String,
     pub category: PatternCategory,
     pub severity: PatternSeverity,
     pub confidence: f64,
@@ -44,7 +46,7 @@ pub enum PatternCategory {
     Unknown,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum PatternSeverity {
     Low = 1,
     Medium = 2,
@@ -130,7 +132,8 @@ impl PatternMatcher {
         Ok(CompiledPattern {
             id: pattern.id,
             name: pattern.name,
-            regex,
+            regex: Some(regex),
+            pattern: pattern.pattern,
             category: pattern.category,
             severity: pattern.severity,
             confidence: pattern.confidence,
@@ -172,7 +175,12 @@ impl PatternMatcher {
     fn find_pattern_matches(&self, text: &str, pattern: &CompiledPattern) -> Vec<PatternMatch> {
         let mut matches = Vec::new();
 
-        for mat in pattern.regex.find_iter(text) {
+        let regex = pattern.regex.as_ref().unwrap_or_else(|| {
+            static EMPTY: std::sync::OnceLock<Regex> = std::sync::OnceLock::new();
+            EMPTY.get_or_init(|| Regex::new("a^").unwrap())
+        });
+
+        for mat in regex.find_iter(text) {
             let matched_text = mat.as_str().to_string();
             let start_pos = mat.start();
             let end_pos = mat.end();

@@ -2,15 +2,13 @@
 // High-performance symmetric encryption for data protection
 
 use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
-use aes_gcm::{Aes256Gcm, Key, Nonce};
-use aes_gcm::aead::{Aead, NewAead};
+use aes_gcm::{Aes256Gcm, Key, Nonce, KeyInit};
+use aes_gcm::aead::Aead;
 use chacha20poly1305::{ChaCha20Poly1305, Key as ChaChaKey, Nonce as ChaChaNonce};
-use chacha20poly1305::aead::{Aead as ChaChaAead, NewAead as ChaChaNewAead};
-use rand::{Rng, RngCore};
+use rand::RngCore;
 use rand::rngs::OsRng;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SymmetricEngine {
     algorithms: HashMap<EncryptionAlgorithm, Box<dyn EncryptionAlgoTrait + Send + Sync>>,
     default_algorithm: EncryptionAlgorithm,
@@ -80,7 +78,7 @@ impl EncryptionAlgoTrait for Aes256GcmImpl {
             return Err(EncryptionError::InvalidKeyLength);
         }
 
-        let cipher = Aes256Gcm::new(Key::from_slice(key));
+        let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| EncryptionError::InvalidKeyLength)?;
         let nonce_bytes = self.generate_nonce();
         let nonce = Nonce::from_slice(&nonce_bytes);
 
@@ -105,7 +103,7 @@ impl EncryptionAlgoTrait for Aes256GcmImpl {
             return Err(EncryptionError::InvalidNonceLength);
         }
 
-        let cipher = Aes256Gcm::new(Key::from_slice(key));
+        let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| EncryptionError::InvalidKeyLength)?;
         let nonce = Nonce::from_slice(nonce);
 
         match cipher.decrypt(nonce, ciphertext) {
@@ -153,7 +151,7 @@ impl EncryptionAlgoTrait for ChaCha20Poly1305Impl {
             return Err(EncryptionError::InvalidKeyLength);
         }
 
-        let cipher = ChaCha20Poly1305::new(ChaChaKey::from_slice(key));
+        let cipher = ChaCha20Poly1305::new_from_slice(key).map_err(|_| EncryptionError::InvalidKeyLength)?;
         let nonce_bytes = self.generate_nonce();
         let nonce = ChaChaNonce::from_slice(&nonce_bytes);
 
@@ -178,7 +176,7 @@ impl EncryptionAlgoTrait for ChaCha20Poly1305Impl {
             return Err(EncryptionError::InvalidNonceLength);
         }
 
-        let cipher = ChaCha20Poly1305::new(ChaChaKey::from_slice(key));
+        let cipher = ChaCha20Poly1305::new_from_slice(key).map_err(|_| EncryptionError::InvalidKeyLength)?;
         let nonce = ChaChaNonce::from_slice(nonce);
 
         match cipher.decrypt(nonce, ciphertext) {
@@ -215,6 +213,15 @@ impl ChaCha20Poly1305Impl {
         let mut nonce = vec![0u8; 12];
         OsRng.fill_bytes(&mut nonce);
         nonce
+    }
+}
+
+impl std::fmt::Debug for SymmetricEngine {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SymmetricEngine")
+            .field("default_algorithm", &self.default_algorithm)
+            .field("key_derivation", &self.key_derivation)
+            .finish()
     }
 }
 
@@ -267,7 +274,7 @@ impl SymmetricEngine {
     }
 
     fn derive_key_pbkdf2(&self, password: &[u8], salt: &[u8]) -> Result<Vec<u8>, EncryptionError> {
-        use pbkdf2::{pbkdf2_hmac, Algorithm};
+        use pbkdf2::pbkdf2_hmac;
         use sha2::Sha256;
 
         let mut key = vec![0u8; 32];

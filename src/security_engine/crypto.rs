@@ -87,7 +87,7 @@ pub struct EntropyAnalysis {
 /// Byte frequency analysis
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ByteFrequencyAnalysis {
-    pub frequency_distribution: [u32; 256],
+    pub frequency_distribution: Vec<u32>,
     pub most_common_bytes: Vec<(u8, u32)>,
     pub least_common_bytes: Vec<(u8, u32)>,
     pub uniformity_score: f64,
@@ -495,7 +495,7 @@ impl CryptographicAnalyzer {
 
     /// Analyze byte frequency distribution
     fn analyze_byte_frequency(&self, data: &[u8]) -> ByteFrequencyAnalysis {
-        let mut frequency_distribution = [0u32; 256];
+        let mut frequency_distribution = vec![0u32; 256];
         for &byte in data {
             frequency_distribution[byte as usize] += 1;
         }

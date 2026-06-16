@@ -8,6 +8,7 @@ import { RiskScoringEngine } from './RiskScoringEngine';
 import { ThreatScore } from '@/models/ThreatScore';
 import { RedisService } from '@/services/RedisService';
 import { RiskContext, ContextualRiskScore, RiskScoringConfig } from '@/types/risk';
+import { ResponseExecutionResult } from '@/types/response';
 import { ResponseEngine } from '@/core/response/ResponseEngine';
 import { getResponseConfiguration } from '@/config/responseConfig';
 

@@ -41,6 +41,7 @@ webpki-roots = "0.25"
 dashmap = "5.5"
 rayon = "1.8"
 crossbeam = "0.8"
+crossbeam-channel = "0.5"
 parking_lot = "0.12"
 
 # Database and caching
