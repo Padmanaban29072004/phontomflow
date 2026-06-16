@@ -1,7 +1,6 @@
 import assert from 'assert';
-import { computeReward } from '../bandit/reward';
-import { ThompsonSamplingBandit } from '../bandit/thompson';
-import { MultiArmedBanditFramework } from '../bandit/mab';
+import { computeReward } from '../src/core/bandit/reward';
+import { ThompsonSamplingBandit, MultiArmedBanditFramework } from '../src/core/bandit/mab';
 
 async function main() {
   assert.strictEqual(computeReward({ blockedAttack: true, userImpact: false, missedDetection: false }), 1);

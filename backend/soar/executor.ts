@@ -4,8 +4,8 @@ import { edrQuarantineAction } from './actions/edr';
 import { iamResetCredentialAction } from './actions/iam';
 import { notifyAction } from './actions/notify';
 import { writePlaybookAuditLog } from './auditLog';
-import { MultiArmedBanditFramework } from '../bandit/mab';
-import { computeReward } from '../bandit/reward';
+import { MultiArmedBanditFramework } from '../src/core/bandit/mab';
+import { computeReward } from '../src/core/bandit/reward';
 
 export interface PlaybookExecutionResult {
   success: boolean;
