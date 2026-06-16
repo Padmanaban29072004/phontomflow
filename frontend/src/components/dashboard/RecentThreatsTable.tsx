@@ -77,7 +77,9 @@ export function RecentThreatsTable({ threats }: RecentThreatsTableProps) {
               </td>
               <td className="px-3 py-3 whitespace-nowrap">
                 <span className="text-sm text-gray-900">
-                  {(threat.threatScore * 100).toFixed(0)}%
+                  {typeof threat.threatScore === 'number' && !Number.isNaN(threat.threatScore)
+                    ? `${(threat.threatScore * 100).toFixed(0)}%`
+                    : 'N/A'}
                 </span>
               </td>
               <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">

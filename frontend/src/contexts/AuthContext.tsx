@@ -13,6 +13,8 @@ interface AuthContextValue {
   token: string | null
   isAuthenticated: boolean
   loading: boolean
+  targetUrl: string | null
+  setTargetUrl: (url: string | null) => void
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
 }
@@ -25,6 +27,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => localStorage.getItem(TOKEN_KEY)
   )
   const [loading, setLoading] = useState(true)
+  const [targetUrl, setTargetUrlState] = useState<string | null>(
+    () => sessionStorage.getItem('target_url')
+  )
+
+  const setTargetUrl = useCallback((url: string | null) => {
+    if (url) {
+      sessionStorage.setItem('target_url', url)
+    } else {
+      sessionStorage.removeItem('target_url')
+    }
+    setTargetUrlState(url)
+  }, [])
 
   useEffect(() => {
     if (!token) {
@@ -67,6 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(TOKEN_KEY)
     setToken(null)
     setUser(null)
+    sessionStorage.removeItem('target_url')
+    setTargetUrlState(null)
     toast.success('Logged out successfully')
   }, [])
 
@@ -77,6 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         isAuthenticated: !!token && !!user,
         loading,
+        targetUrl,
+        setTargetUrl,
         login,
         logout,
       }}

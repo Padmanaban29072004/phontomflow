@@ -24,6 +24,12 @@ import {
   MockDashboardMetrics,
   MockThreat,
 } from '../services/mockData'
+import {
+  mapOverviewToMetrics,
+  normalizeThreatList,
+  unwrapApiPayload,
+} from '../services/apiHelpers'
+import { PageShell } from '../components/layout/PageShell'
 
 type DashboardMetrics = MockDashboardMetrics
 
@@ -41,36 +47,22 @@ export const DashboardPage: React.FC = () => {
 
   const { socket } = useSocket()
 
-  const { refetch } = useQuery(
+  const { refetch, isFetching } = useQuery(
     'dashboard-overview',
     async () => {
-      try {
-        const response = await api.get('/dashboard/overview')
-        return response
-      } catch {
-        setMetrics(STATIC_DASHBOARD_METRICS)
-        return { data: { data: STATIC_DASHBOARD_METRICS } } as any
-      }
+      const response = await api.get('/dashboard/overview')
+      return response
     },
     {
       refetchInterval: 30000,
-      onSuccess: (data: any) => {
-        if (data?.data) {
-          const source = data.data.data || data.data
-          setMetrics({
-            totalRequests: source.totalRequests ?? metrics.totalRequests,
-            threatsDetected: source.threatsDetected ?? metrics.threatsDetected,
-            falsePositives: source.falsePositives ?? metrics.falsePositives,
-            averageResponseTime: source.averageResponseTime ?? metrics.averageResponseTime,
-            accuracy: source.accuracy ?? metrics.accuracy,
-            activeThreats: source.activeThreats ?? metrics.activeThreats,
-            blockedAttacks: source.blockedAttacks ?? metrics.blockedAttacks,
-            systemHealth: source.systemHealth ?? metrics.systemHealth,
-          })
-          setIsLoading(false)
-        }
+      retry: 1,
+      onSuccess: (response) => {
+        const overview = unwrapApiPayload<Record<string, unknown>>(response)
+        setMetrics(mapOverviewToMetrics(overview, STATIC_DASHBOARD_METRICS))
+        setIsLoading(false)
       },
       onError: () => {
+        setMetrics(STATIC_DASHBOARD_METRICS)
         setIsLoading(false)
       },
     }
@@ -79,25 +71,20 @@ export const DashboardPage: React.FC = () => {
   useQuery(
     'recent-threats',
     async () => {
-      try {
-        const response = await api.get('/threats')
-        return response
-      } catch {
-        setRecentThreats(STATIC_THREATS.slice(0, 50) as any)
-        return { data: STATIC_THREATS } as any
-      }
+      const response = await api.get('/threats')
+      return response
     },
     {
       refetchInterval: 10000,
-      onSuccess: (data: any) => {
-        if (data?.data && Array.isArray(data.data)) {
-          setRecentThreats(
-            data.data.slice(0, 50).map((threat: any) => ({
-              ...threat,
-              timestamp: threat.timestamp || new Date(),
-            }))
-          )
+      retry: 1,
+      onSuccess: (response) => {
+        const threats = normalizeThreatList(unwrapApiPayload(response))
+        if (threats.length > 0) {
+          setRecentThreats(threats.slice(0, 50))
         }
+      },
+      onError: () => {
+        setRecentThreats(STATIC_THREATS.slice(0, 50))
       },
     }
   )
@@ -143,25 +130,29 @@ export const DashboardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center flex-1 min-h-[50vh]">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600" />
-      </div>
+      <PageShell title="PHANTOM-Flow Dashboard" description="Loading dashboard data...">
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <div className="h-16 w-16 animate-spin rounded-full border-b-2 border-blue-600" />
+        </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 gap-4">
+    <PageShell bare>
+      <div className="flex flex-col gap-4 p-4 sm:p-6 lg:p-8">
       <div className="flex-shrink-0">
-        <div className="flex items-center justify-between mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">PHANTOM-Flow Dashboard</h1>
             <p className="text-sm text-gray-500">Real-time threat monitoring and adaptive defense</p>
           </div>
           <button
             onClick={() => refetch()}
-            className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            disabled={isFetching}
+            className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            <ClockIcon className="h-4 w-4 mr-1" />
+            <ClockIcon className="mr-1 h-4 w-4" />
             Refresh
           </button>
         </div>
@@ -274,7 +265,7 @@ export const DashboardPage: React.FC = () => {
         </motion.div>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="grid min-h-[480px] grid-cols-1 gap-3 lg:grid-cols-3">
         <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -342,6 +333,7 @@ export const DashboardPage: React.FC = () => {
           </motion.div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageShell>
   )
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useQuery } from 'react-query'
 import {
   BarChart,
@@ -40,27 +40,39 @@ function formatContextLabel(ctx: string): string {
 }
 
 export function BanditPerformancePanel() {
-  const [selectedContext, setSelectedContext] = useState<string>('threat_high_reputation_suspicious')
+  const [selectedContext, setSelectedContext] = useState<string>('')
 
   const { data: statsResp, isLoading: statsLoading } = useQuery(
     'bandit-stats',
-    () => banditApi.stats().catch(() => ({ data: { data: { contexts: {}, feedback: { totalFeedback: 0, signalCounts: {}, recentRewardAvg: 0 }, config: {} } } })),
+    () => banditApi.stats(),
     { refetchInterval: 30000, retry: 1 },
   )
 
   const { data: actionsResp } = useQuery(
     'bandit-actions',
-    () => banditApi.actions().catch(() => ({ data: { data: { actions: [], contextBuckets: [] } } })),
-    { staleTime: 60000 },
+    () => banditApi.actions(),
+    { staleTime: 60000, retry: 1 },
   )
 
   const banditData = statsResp?.data?.data as BanditStatsResponse | undefined
-  const actionsData = actionsResp?.data?.data as { actions: { id: string; description: string; severity: number }[]; contextBuckets: string[] } | undefined
+  const actionsData = actionsResp?.data?.data as {
+    actions: { id: string; description: string; severity: number }[]
+    contextBuckets: string[]
+  } | undefined
 
-  const contextBuckets = actionsData?.contextBuckets ?? []
-  const currentStats = banditData?.contexts?.[selectedContext] ?? null
+  const contextBuckets = actionsData?.contextBuckets?.length
+    ? actionsData.contextBuckets
+    : Object.keys(banditData?.contexts ?? {})
+
+  const activeContext = selectedContext && contextBuckets.includes(selectedContext)
+    ? selectedContext
+    : (contextBuckets[0] || '')
+
+  const currentStats = banditData?.contexts?.[activeContext] ?? null
   const feedbackStats = banditData?.feedback ?? { totalFeedback: 0, signalCounts: {}, recentRewardAvg: 0 }
   const config = banditData?.config ?? {}
+
+  console.log('BanditPerformancePanel render:', { selectedContext, activeContext, contextBucketsLength: contextBuckets.length, statsLoaded: !!banditData, actionsLoaded: !!actionsData })
 
   const winRateData = useMemo(() => {
     if (!currentStats?.actions) return []
@@ -90,22 +102,27 @@ export function BanditPerformancePanel() {
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-500">Context:</label>
           <select
-            value={selectedContext}
+            value={activeContext}
             onChange={(e) => setSelectedContext(e.target.value)}
-            className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[240px]"
+            disabled={contextBuckets.length === 0}
+            className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[240px] disabled:opacity-50"
           >
-            {contextBuckets.map((ctx) => (
-              <option key={ctx} value={ctx}>{formatContextLabel(ctx)}</option>
-            ))}
+            {contextBuckets.length === 0 ? (
+              <option value="">No contexts</option>
+            ) : (
+              contextBuckets.map((ctx) => (
+                <option key={ctx} value={ctx}>{formatContextLabel(ctx)}</option>
+              ))
+            )}
           </select>
         </div>
       </div>
 
       {statsLoading ? (
         <div className="flex items-center justify-center h-48 text-sm text-gray-400">Loading bandit data...</div>
-      ) : !currentStats ? (
+      ) : !currentStats || contextBuckets.length === 0 ? (
         <div className="flex items-center justify-center h-48 text-sm text-gray-400">
-          No bandit data available. The system may not have processed requests yet.
+          No bandit data available yet. Process traffic through the backend to populate learning stats.
         </div>
       ) : (
         <>

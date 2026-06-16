@@ -10,8 +10,10 @@ import {
 } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
 import { STATIC_DECEPTION_TRAPS, STATIC_DECEPTION_EVENTS } from '../services/mockData'
+import { unwrapApiPayload } from '../services/apiHelpers'
+import { PageShell } from '../components/layout/PageShell'
 
-export const DeceptionPage: React.FC = () => {
+export function DeceptionPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newTrap, setNewTrap] = useState({ name: '', endpoint: '', type: 'honeypot' })
   const queryClient = useQueryClient()
@@ -21,7 +23,7 @@ export const DeceptionPage: React.FC = () => {
     async () => {
       try {
         const response = await api.get('/deception/traps')
-        const backendTraps = response.data?.data || response.data || []
+        const backendTraps = unwrapApiPayload<Record<string, unknown>[]>(response) ?? []
         return backendTraps.map((trap: any) => ({
           id: trap.id || trap._id,
           name: trap.name || trap.path || trap.endpoint || `Trap ${trap.id}`,
@@ -45,7 +47,7 @@ export const DeceptionPage: React.FC = () => {
     async () => {
       try {
         const response = await api.get('/deception/events')
-        const backendEvents = response.data?.data || response.data || []
+        const backendEvents = unwrapApiPayload<Record<string, unknown>[]>(response) ?? []
         return backendEvents.map((event: any) => ({
           id: event.id || event._id,
           type: event.type || 'honeypot_access',
@@ -140,29 +142,31 @@ export const DeceptionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
+      <PageShell title="Deception Layer" description="Manage honeypots and deception traps">
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
+        </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 gap-4">
-      <div className="flex-shrink-0 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Deception Layer</h1>
-          <p className="text-sm text-gray-500">Manage honeypots and deception traps</p>
-        </div>
+    <PageShell
+      title="Deception Layer"
+      description="Manage honeypots and deception traps"
+    >
+      <div className="flex justify-end">
         <button
+          type="button"
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
         >
-          <PlusIcon className="h-4 w-4 mr-1.5" />
+          <PlusIcon className="mr-1.5 h-4 w-4" />
           Create Trap
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col min-h-0 overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-900 mb-3 flex-shrink-0">Active Traps</h2>
           {traps.length === 0 ? (
@@ -234,26 +238,29 @@ export const DeceptionPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-shrink-0 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Deception Statistics</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
+      <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">Deception Statistics</h2>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="rounded-lg bg-blue-50 p-4 text-center">
             <p className="text-2xl font-bold text-blue-600">{traps.length}</p>
             <p className="text-sm text-gray-600">Active Traps</p>
           </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
+          <div className="rounded-lg bg-green-50 p-4 text-center">
             <p className="text-2xl font-bold text-green-600">{events.length}</p>
             <p className="text-sm text-gray-600">Total Events</p>
           </div>
-          <div className="text-center p-4 bg-yellow-50 rounded-lg">
+          <div className="rounded-lg bg-yellow-50 p-4 text-center">
             <p className="text-2xl font-bold text-yellow-600">
-              {events.filter((e: any) => e.type === 'honeypot').length}
+              {events.filter((e: { type?: string }) => e.type?.includes('honeypot')).length}
             </p>
             <p className="text-sm text-gray-600">Honeypot Hits</p>
           </div>
-          <div className="text-center p-4 bg-red-50 rounded-lg">
+          <div className="rounded-lg bg-red-50 p-4 text-center">
             <p className="text-2xl font-bold text-red-600">
-              {events.filter((e: any) => e.riskLevel === 'high' || e.riskLevel === 'critical').length}
+              {events.filter(
+                (e: { riskLevel?: string }) =>
+                  e.riskLevel === 'high' || e.riskLevel === 'critical'
+              ).length}
             </p>
             <p className="text-sm text-gray-600">High Risk</p>
           </div>
@@ -325,6 +332,6 @@ export const DeceptionPage: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </PageShell>
   )
 }

@@ -28,14 +28,14 @@ export function GraphLegend({ visibleTypes, onToggle }: GraphLegendProps) {
         <button
           key={type}
           onClick={() => onToggle(type)}
-          className="flex w-full items-center gap-2 rounded px-2 py-1 text-xs transition-colors hover:bg-gray-800"
+          className="flex w-full items-center gap-2 rounded px-2 py-1 text-xs transition-colors hover:bg-gray-100"
         >
           <div
             className="h-3 w-3 rounded-sm"
             style={{ backgroundColor: color, opacity: visibleTypes.has(type) ? 1 : 0.3 }}
           />
           <span
-            className="text-gray-300"
+            className="text-gray-700"
             style={{ opacity: visibleTypes.has(type) ? 1 : 0.4 }}
           >
             {NODE_LABELS[type]}

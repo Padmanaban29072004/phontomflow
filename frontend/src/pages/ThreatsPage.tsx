@@ -10,6 +10,8 @@ import {
 } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
 import { STATIC_THREATS } from '../services/mockData'
+import { normalizeThreatList, unwrapApiPayload } from '../services/apiHelpers'
+import { PageShell } from '../components/layout/PageShell'
 
 export const ThreatsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -19,22 +21,9 @@ export const ThreatsPage: React.FC = () => {
   const { data: threatsData, isLoading, refetch } = useQuery(
     'threats',
     async () => {
-      try {
-        const response = await api.get('/threats')
-        const backendThreats = response.data?.data || response.data || []
-        return backendThreats.map((threat: any) => ({
-          id: threat.id || threat._id,
-          ipAddress: threat.ipAddress,
-          riskLevel: threat.riskLevel || threat.severity?.toLowerCase() || 'medium',
-          threatScore: threat.threatScore || (threat.severity === 'high' ? 0.8 : threat.severity === 'critical' ? 0.9 : 0.6),
-          userAgent: threat.userAgent || threat.details?.userAgent || 'Unknown',
-          timestamp: threat.timestamp || new Date().toISOString(),
-          type: threat.type,
-          description: threat.description,
-        }))
-      } catch {
-        return STATIC_THREATS
-      }
+      const response = await api.get('/threats')
+      const threats = normalizeThreatList(unwrapApiPayload(response))
+      return threats.length > 0 ? threats : STATIC_THREATS
     },
     {
       refetchInterval: 10000,
@@ -95,18 +84,19 @@ export const ThreatsPage: React.FC = () => {
 
   if (isLoading && threats.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      </div>
+      <PageShell title="Threat Management" description="Loading threats...">
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
+        </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 gap-4">
-      <div className="flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Threat Management</h1>
-        <p className="text-sm text-gray-500">Monitor and manage all detected security threats</p>
-      </div>
+    <PageShell
+      title="Threat Management"
+      description="Monitor and manage all detected security threats"
+    >
 
       <div className="flex-shrink-0 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -137,7 +127,7 @@ export const ThreatsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col overflow-hidden">
+      <div className="flex min-h-[420px] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -225,6 +215,6 @@ export const ThreatsPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   )
 }

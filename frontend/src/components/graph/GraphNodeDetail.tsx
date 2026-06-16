@@ -13,7 +13,7 @@ export function GraphNodeDetail({ node, relationships, onClose }: GraphNodeDetai
   const label = node.labels[0]
   const color = NODE_COLORS[label] || '#6b7280'
   const nodeRels = relationships.filter(
-    (r) => r.properties?.source === node.id || r.properties?.target === node.id
+    (r) => r.source === node.id || r.target === node.id
   )
 
   return (
