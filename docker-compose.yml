@@ -30,7 +30,7 @@ services:
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
     healthcheck:
-      test: ["CMD", "wget", "-q", "http://localhost:7474"]
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
       interval: 15s
       timeout: 5s
       retries: 5
