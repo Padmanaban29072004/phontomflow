@@ -1,0 +1,30 @@
+{
+  "id": "port_scan_response",
+  "name": "Port Scan Response",
+  "trigger": {
+    "eventType": "port_scan",
+    "minRiskScore": 0.6,
+    "minConfidence": 0.6
+  },
+  "steps": [
+    {
+      "id": "fw-block-source",
+      "type": "firewall",
+      "params": {
+        "sourceIp": "{{src_ip}}"
+      },
+      "retries": 2
+    },
+    {
+      "id": "notify-ops",
+      "type": "notify",
+      "params": {
+        "message": "Port scan blocked from {{src_ip}}",
+        "severity": "high"
+      }
+    }
+  ],
+  "rollback": [],
+  "timeoutMs": 30000
+}
+

@@ -1,0 +1,36 @@
+{
+  "id": "data_exfil_response",
+  "name": "Data Exfiltration Response",
+  "trigger": {
+    "eventType": "data_exfiltration",
+    "minRiskScore": 0.8,
+    "minConfidence": 0.7
+  },
+  "steps": [
+    {
+      "id": "edr-quarantine-host",
+      "type": "edr",
+      "params": {
+        "hostId": "{{host}}"
+      }
+    },
+    {
+      "id": "fw-block-source",
+      "type": "firewall",
+      "params": {
+        "sourceIp": "{{src_ip}}"
+      }
+    },
+    {
+      "id": "notify-ops",
+      "type": "notify",
+      "params": {
+        "message": "Potential data exfiltration isolated on host {{host}}",
+        "severity": "critical"
+      }
+    }
+  ],
+  "rollback": [],
+  "timeoutMs": 60000
+}
+

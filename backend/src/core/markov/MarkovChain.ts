@@ -543,7 +543,7 @@ export class MarkovChain {
   /**
    * Generate alternative sequences
    */
-  private generateAlternatives(context: string): string[][] {
+  private generateAlternatives(_context: string): string[] {
     // Simplified implementation - return empty for now
     return [];
   }

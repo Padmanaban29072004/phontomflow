@@ -1,0 +1,36 @@
+{
+  "id": "brute_force_response",
+  "name": "Brute Force Response",
+  "trigger": {
+    "eventType": "brute_force",
+    "minRiskScore": 0.7,
+    "minConfidence": 0.65
+  },
+  "steps": [
+    {
+      "id": "fw-block-source",
+      "type": "firewall",
+      "params": {
+        "sourceIp": "{{src_ip}}"
+      }
+    },
+    {
+      "id": "iam-reset",
+      "type": "iam",
+      "params": {
+        "userId": "{{user_id}}"
+      }
+    },
+    {
+      "id": "notify-ops",
+      "type": "notify",
+      "params": {
+        "message": "Brute force detected for {{user_id}} from {{src_ip}}",
+        "severity": "critical"
+      }
+    }
+  ],
+  "rollback": [],
+  "timeoutMs": 45000
+}
+

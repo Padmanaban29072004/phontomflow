@@ -64,7 +64,9 @@ export class MarkovManager {
       // Initialize analytics if enabled
       if (this.config.globalConfig.enableAnalytics && this.sequenceAnalyzers.size > 0) {
         const primaryAnalyzer = this.sequenceAnalyzers.values().next().value;
-        this.analytics = new MarkovAnalytics(primaryAnalyzer);
+        if (primaryAnalyzer) {
+          this.analytics = new MarkovAnalytics(primaryAnalyzer);
+        }
       }
 
       // Load existing data from persistence

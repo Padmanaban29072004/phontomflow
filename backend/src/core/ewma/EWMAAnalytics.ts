@@ -119,7 +119,7 @@ export class EWMAAnalytics {
    * Analyze cross-window consensus
    */
   public analyzeMultiWindowConsensus(
-    windowResults: Record<TimeWindow, any>
+    windowResults: Partial<Record<TimeWindow, any>>
   ): MultiWindowEWMA['consensus'] {
     try {
       const windows = Object.keys(windowResults) as TimeWindow[];

@@ -383,7 +383,7 @@ export class VisitorTracker {
    */
   private normalizeUserAgent(userAgent: string): string {
     return userAgent
-      .replace(/\/[\d\.]+/g, '') // Remove version numbers
+      .replace(/\/[\d.]+/g, '') // Remove version numbers
       .replace(/\s+/g, ' ')      // Normalize whitespace
       .trim()
       .toLowerCase();

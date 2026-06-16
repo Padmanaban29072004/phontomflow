@@ -1,0 +1,29 @@
+{
+  "id": "honeypot_trigger_response",
+  "name": "Honeypot Trigger Response",
+  "trigger": {
+    "eventType": "honeypot_trigger",
+    "minRiskScore": 0.65,
+    "minConfidence": 0.6
+  },
+  "steps": [
+    {
+      "id": "fw-block-source",
+      "type": "firewall",
+      "params": {
+        "sourceIp": "{{src_ip}}"
+      }
+    },
+    {
+      "id": "notify-ops",
+      "type": "notify",
+      "params": {
+        "message": "Honeypot interaction blocked from {{src_ip}}",
+        "severity": "high"
+      }
+    }
+  ],
+  "rollback": [],
+  "timeoutMs": 30000
+}
+

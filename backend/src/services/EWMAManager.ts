@@ -88,7 +88,7 @@ export class EWMAManager {
     const startTime = process.hrtime.bigint();
 
     try {
-      const windowResults: Record<TimeWindow, any> = {};
+      const windowResults: Partial<Record<TimeWindow, any>> = {};
       
       // Process through each EWMA window
       for (const [window, ewma] of this.ewmaInstances) {
@@ -490,7 +490,7 @@ export class EWMAManager {
    * Generate recommendations based on window results and consensus
    */
   private generateRecommendations(
-    windowResults: Record<TimeWindow, any>,
+    windowResults: Partial<Record<TimeWindow, any>>,
     consensus: MultiWindowEWMA['consensus']
   ): string[] {
     const recommendations: string[] = [];

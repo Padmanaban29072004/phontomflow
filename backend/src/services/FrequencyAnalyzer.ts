@@ -336,7 +336,7 @@ export class FrequencyAnalyzer {
 
     // Determine pattern type
     let type: FrequencyPattern['type'];
-    let confidence = 0.8;
+    const confidence = 0.8;
     let description: string;
 
     if (variance / mean > 2) {
@@ -416,7 +416,7 @@ export class FrequencyAnalyzer {
   private normalizeUserAgent(userAgent: string): string {
     // Remove version numbers and keep only browser/bot name
     return userAgent
-      .replace(/\/[\d\.]+/g, '') // Remove version numbers
+      .replace(/\/[\d.]+/g, '') // Remove version numbers
       .replace(/\s+/g, ' ')      // Normalize whitespace
       .trim()
       .toLowerCase();

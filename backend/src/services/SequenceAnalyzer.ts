@@ -370,7 +370,7 @@ export class SequenceAnalyzer {
           confidence: 0.7,
           data: { 
             frequency: rarePatterns.length,
-            patterns: rarePatterns.slice(0, 3)
+            pattern: rarePatterns[0]
           },
           recommendations: [
             'Monitor rare behaviors for security implications',

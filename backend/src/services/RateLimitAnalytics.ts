@@ -361,10 +361,10 @@ export class RateLimitAnalyticsService {
           lastUpdated: new Date()
         };
         
-        await this.redisService.setex(
+        await this.redisService.set(
           key,
-          this.config.metricsRetentionHours * 3600,
-          JSON.stringify(metrics)
+          JSON.stringify(metrics),
+          this.config.metricsRetentionHours * 3600
         );
       } else {
         // Update existing metrics
@@ -387,10 +387,10 @@ export class RateLimitAnalyticsService {
           metrics.effectivenessScore = this.calculateEffectivenessScore(metrics);
           metrics.lastUpdated = new Date();
           
-          await this.redisService.setex(
+          await this.redisService.set(
             key,
-            this.config.metricsRetentionHours * 3600,
-            JSON.stringify(metrics)
+            JSON.stringify(metrics),
+            this.config.metricsRetentionHours * 3600
           );
         }
       }
@@ -415,10 +415,10 @@ export class RateLimitAnalyticsService {
         violations.splice(0, violations.length - maxViolations);
       }
       
-      await this.redisService.setex(
+      await this.redisService.set(
         key,
-        this.config.violationRetentionHours * 3600,
-        JSON.stringify(violations)
+        JSON.stringify(violations),
+        this.config.violationRetentionHours * 3600
       );
       
       // Update local cache

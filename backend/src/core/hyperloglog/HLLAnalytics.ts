@@ -127,7 +127,7 @@ export class HLLAnalytics {
       
       // Detect pattern type
       let patternType: VisitorPattern['type'];
-      let confidence = 0.8;
+      const confidence = 0.8;
       
       if (Math.abs(avgGrowthRate) < 2) {
         patternType = 'steady';

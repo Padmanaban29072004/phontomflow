@@ -37,7 +37,7 @@ export class AdaptiveRateLimiter {
     redisService: RedisService,
     config: RateLimitConfig,
     threatAdjustments: ThreatBasedAdjustment[] = [],
-    userAdjustments: Record<UserProfile, number> = {},
+    userAdjustments: Partial<Record<UserProfile, number>> = {},
     geographicRules: GeographicRateRule[] = [],
     temporalRules: TemporalRateRule[] = []
   ) {

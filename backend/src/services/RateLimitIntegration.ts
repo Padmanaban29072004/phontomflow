@@ -38,7 +38,7 @@ export interface RateLimitIntegrationConfig {
 }
 
 export class RateLimitIntegration {
-  private enforcementService: RateLimitEnforcementService;
+  private enforcementService!: RateLimitEnforcementService;
   private redisService: RedisService;
   private config: RateLimitIntegrationConfig;
   private isEmergencyMode: boolean = false;

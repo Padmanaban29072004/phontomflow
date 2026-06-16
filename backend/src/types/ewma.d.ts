@@ -61,7 +61,7 @@ export interface EWMAResult {
 }
 
 export interface MultiWindowEWMA {
-  windows: Record<TimeWindow, EWMAResult>;
+  windows: Partial<Record<TimeWindow, EWMAResult>>;
   consensus: {
     trend: TrendDirection;
     anomalyScore: number;
@@ -188,7 +188,7 @@ export interface EWMAValidationResult {
   isValid: boolean;
   accuracy: number;
   errors: Array<{
-    type: 'calculation' | 'trend' | 'prediction' | 'adaptation';
+    type: 'calculation' | 'trend' | 'prediction' | 'adaptation' | 'accuracy' | 'performance';
     description: string;
     severity: 'low' | 'medium' | 'high';
     suggestion: string;

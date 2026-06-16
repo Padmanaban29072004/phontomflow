@@ -58,7 +58,9 @@ export class HyperLogLogManager {
       // Initialize analytics if enabled
       if (this.config.enableAnalytics && this.visitorTrackers.size > 0) {
         const primaryTracker = this.visitorTrackers.values().next().value;
-        this.analytics = new HLLAnalytics(primaryTracker);
+        if (primaryTracker) {
+          this.analytics = new HLLAnalytics(primaryTracker);
+        }
       }
 
       // Load existing data from Redis

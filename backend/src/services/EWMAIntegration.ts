@@ -526,12 +526,15 @@ export class EWMAIntegration {
   private calculateOverallThreatRisk(indicators: any[]): number {
     if (indicators.length === 0) return 0;
 
-    const severityWeights = { low: 0.2, medium: 0.5, high: 0.8, critical: 1.0 };
+    const severityWeights: Record<'low' | 'medium' | 'high' | 'critical', number> = {
+      low: 0.2, medium: 0.5, high: 0.8, critical: 1.0
+    };
     let totalRisk = 0;
     let totalWeight = 0;
 
     for (const indicator of indicators) {
-      const weight = severityWeights[indicator.severity] * indicator.confidence;
+      const severity = indicator.severity as keyof typeof severityWeights;
+      const weight = severityWeights[severity] * indicator.confidence;
       totalRisk += weight;
       totalWeight += indicator.confidence;
     }

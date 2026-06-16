@@ -287,7 +287,7 @@ export class RateLimitManager {
       if (this.currentMemoryUsage > this.config.globalSettings.maxMemoryUsage * 0.9) {
         issues.push({
           component: 'memory' as const,
-          severity: 'warning' as const,
+          severity: 'medium' as const,
           description: `Memory usage (${this.formatBytes(this.currentMemoryUsage)}) approaching limit`,
           suggestion: 'Consider increasing memory limit or optimizing cache size'
         });
@@ -299,7 +299,7 @@ export class RateLimitManager {
       if (avgResponseTime > 20) { // 20ms threshold
         issues.push({
           component: 'performance' as const,
-          severity: 'warning' as const,
+          severity: 'medium' as const,
           description: `Average response time (${avgResponseTime.toFixed(2)}ms) is high`,
           suggestion: 'Consider optimizing rate limiting algorithms or adding more instances'
         });

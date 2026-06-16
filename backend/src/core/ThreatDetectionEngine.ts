@@ -9,7 +9,7 @@ import { ThreatScore } from '@/models/ThreatScore';
 import { RedisService } from '@/services/RedisService';
 import { RiskContext, ContextualRiskScore, RiskScoringConfig } from '@/types/risk';
 import { ResponseEngine } from '@/core/response/ResponseEngine';
-import { ResponseExecutionResult } from '@/types/response';
+import { getResponseConfiguration } from '@/config/responseConfig';
 
 export interface ThreatAssessment {
   threatScore: number;  
@@ -62,14 +62,14 @@ export class ThreatDetectionEngine {
     
     // Initialize risk scoring engine with default config if not provided
     const defaultConfig: RiskScoringConfig = this.getDefaultRiskScoringConfig();
-    const redisServiceInstance = redisService || new (require('@/services/RedisService').RedisService)();
+    const redisServiceInstance = redisService || new RedisService();
     this.riskScoringEngine = new RiskScoringEngine(
       redisServiceInstance,
       riskScoringConfig || defaultConfig
     );
     
     // Initialize response engine
-    const responseConfig = require('@/config/responseConfig').getResponseConfiguration();
+    const responseConfig = getResponseConfiguration();
     this.responseEngine = new ResponseEngine(responseConfig, redisServiceInstance);
     
     this.detectionMetrics = {

@@ -169,10 +169,10 @@ export class RateLimitEnforcementService {
       this.blockedExpiry.set(ipAddress, expiryTime);
 
       // Store in Redis for distributed blocking
-      await this.redisService.setex(
+      await this.redisService.set(
         `blocked_ip:${ipAddress}`,
-        Math.ceil(durationMs / 1000),
-        JSON.stringify({ reason, blockedAt: new Date(), expiryTime })
+        JSON.stringify({ reason, blockedAt: new Date(), expiryTime }),
+        Math.ceil(durationMs / 1000)
       );
 
       logger.warn('IP address blocked', {

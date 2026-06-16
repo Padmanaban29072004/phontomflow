@@ -114,6 +114,15 @@ export class RedisService {
   }
 
   /**
+   * Ping Redis to verify connectivity
+   */
+  public async ping(): Promise<string> {
+    return await this.safeOperation(async () => {
+      return await this.client.ping();
+    }, 'PONG');
+  }
+
+  /**
    * Set a key-value pair with optional expiration
    */
   public async set(key: string, value: string, ttlSeconds?: number): Promise<void> {

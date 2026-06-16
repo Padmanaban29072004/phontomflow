@@ -431,7 +431,8 @@ export class BehavioralStateManager {
       'idle': 0, 'active': 1, 'focus_lost': 1, 'focus_gained': 1,
       'page_exit': 3, 'redirect': 2, 'back_button': 2, 'refresh': 2,
       'download': 4, 'upload': 5, 'rate_limit_hit': 7,
-      'captcha_challenge': 6, 'session_timeout': 5, 'tab_switch': 1
+      'captcha_challenge': 6, 'session_timeout': 5, 'tab_switch': 1,
+      'login_attempt': 9, 'timeout': 6, 'network_error': 6
     };
 
     sequence.states.sort((a, b) => {
@@ -458,7 +459,8 @@ export class BehavioralStateManager {
       'idle': 0, 'active': 1, 'focus_lost': 1, 'focus_gained': 1,
       'page_exit': 3, 'redirect': 2, 'back_button': 2, 'refresh': 2,
       'download': 4, 'upload': 5, 'rate_limit_hit': 7,
-      'captcha_challenge': 6, 'session_timeout': 5, 'tab_switch': 1
+      'captcha_challenge': 6, 'session_timeout': 5, 'tab_switch': 1,
+      'login_attempt': 9, 'timeout': 6, 'network_error': 6
     };
 
     sequence.states.sort((a, b) => {

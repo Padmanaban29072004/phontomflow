@@ -405,9 +405,9 @@ export class BehavioralIntegration {
     const riskLevel = this.determineRiskLevel(riskScore);
     const confidence = Math.min(0.95, anomalyResult.confidence + 0.1);
 
-    const contributingFactors = [
+    const contributingFactors: BehavioralRiskScore['contributingFactors'] = [
       {
-        factor: 'sequence_anomaly' as const,
+        factor: 'rare_sequence',
         weight: this.riskWeights.sequenceAnomaly,
         description: `Sequence anomaly score: ${anomalyResult.anomalyScore.toFixed(2)}`,
         severity: anomalyResult.anomalyScore
@@ -448,7 +448,7 @@ export class BehavioralIntegration {
 
     if (anomalyResult.isAnomalous) {
       indicators.push({
-        type: anomalyResult.anomalyType,
+        type: this.mapAnomalyToThreatType(anomalyResult.anomalyType),
         severity: anomalyResult.severity,
         description: anomalyResult.description,
         confidence: anomalyResult.confidence
@@ -532,7 +532,7 @@ export class BehavioralIntegration {
 
     if (journey.deviations.length > 0) {
       factors.push({
-        factor: 'sequence_anomaly',
+        factor: 'rare_sequence',
         weight: 0.3,
         description: `${journey.deviations.length} behavioral deviations detected`,
         severity: journey.deviations.length * 0.1
@@ -573,17 +573,39 @@ export class BehavioralIntegration {
   }
 
   /**
+   * Map sequence anomaly types to threat indicator types
+   */
+  private mapAnomalyToThreatType(
+    anomalyType: NonNullable<SequenceAnomalyResult>['anomalyType']
+  ): BehavioralSequenceData['threatIndicators'][number]['type'] {
+    const mapping: Record<
+      NonNullable<SequenceAnomalyResult>['anomalyType'],
+      BehavioralSequenceData['threatIndicators'][number]['type']
+    > = {
+      rare_sequence: 'sequence_anomaly',
+      impossible_transition: 'impossible_transition',
+      timing_anomaly: 'timing_anomaly',
+      context_mismatch: 'context_violation',
+      pattern_break: 'pattern_break'
+    };
+    return mapping[anomalyType];
+  }
+
+  /**
    * Calculate overall threat risk from indicators
    */
   private calculateOverallThreatRisk(indicators: any[]): number {
     if (indicators.length === 0) return 0;
 
-    const severityWeights = { low: 0.2, medium: 0.5, high: 0.8, critical: 1.0 };
+    const severityWeights: Record<'low' | 'medium' | 'high' | 'critical', number> = {
+      low: 0.2, medium: 0.5, high: 0.8, critical: 1.0
+    };
     let totalRisk = 0;
     let totalWeight = 0;
 
     for (const indicator of indicators) {
-      const weight = severityWeights[indicator.severity] * indicator.confidence;
+      const severity = indicator.severity as keyof typeof severityWeights;
+      const weight = severityWeights[severity] * indicator.confidence;
       totalRisk += weight;
       totalWeight += indicator.confidence;
     }

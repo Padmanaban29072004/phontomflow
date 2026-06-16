@@ -107,7 +107,6 @@ export class ThompsonSampling {
 
     let bestAction: BanditActionType | null = null;
     let bestProb = -1;
-    let bestActionProb = 0;
 
     for (const action of BANDIT_ACTIONS) {
       const sk = this.stateKey(action, ctx);

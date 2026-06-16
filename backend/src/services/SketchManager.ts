@@ -273,7 +273,7 @@ export class SketchManager {
       totalWeight += weight;
     }
 
-    let analysisRisk = totalWeight > 0 ? weightedRisk / totalWeight : 0;
+    const analysisRisk = totalWeight > 0 ? weightedRisk / totalWeight : 0;
 
     // Boost based on anomaly severity
     let anomalyBoost = 0;

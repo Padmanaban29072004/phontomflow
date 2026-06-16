@@ -52,7 +52,7 @@ jobs:
         working-directory: backend
         run: |
           npm ci
-          npm test -- --ci --coverage
+          npm test
 
       - name: Setup Go
         if: matrix.service == 'go-server'

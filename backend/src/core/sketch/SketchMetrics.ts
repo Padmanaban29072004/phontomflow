@@ -311,7 +311,13 @@ export class SketchMetricsCollector {
       memoryTrend: number;
       errorTrend: number;
     };
-    alerts: typeof this.performanceAlerts;
+    alerts: Array<{
+      timestamp: Date;
+      type: 'high_latency' | 'high_memory' | 'high_error_rate' | 'low_accuracy';
+      message: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      metadata: Record<string, any>;
+    }>;
   } {
     const performance = this.getPerformanceMetrics();
     const health = this.calculateHealthScore();
