@@ -1,9 +1,11 @@
 mod analysis;
 mod compression;
 mod encryption;
+#[cfg(feature = "grpc")]
 mod grpc_service;
 mod kafka;
 mod network;
+#[cfg(feature = "perf-engine")]
 mod performance_engine;
 mod security_engine;
 mod storage;
@@ -24,6 +26,7 @@ use serde_json::json;
 use tokio::signal;
 use tracing_subscriber::EnvFilter;
 
+#[cfg(feature = "perf-engine")]
 use performance_engine::core::{PerformanceEngine, PerformanceConfig};
 use security_engine::{SecurityConfig, SecurityAnalysisRequest, SecurityEngine};
 
@@ -54,6 +57,7 @@ struct Cli {
 
 struct AppState {
     security_engine: SecurityEngine,
+    #[cfg(feature = "perf-engine")]
     performance_engine: Arc<tokio::sync::Mutex<PerformanceEngine>>,
 }
 
@@ -79,6 +83,7 @@ async fn main() -> Result<()> {
         batch_size: 100,
     };
 
+    #[cfg(feature = "perf-engine")]
     let perf_config = PerformanceConfig {
         worker_threads: cli.workers,
         queue_size: 10000,
@@ -97,6 +102,8 @@ async fn main() -> Result<()> {
         compression_enabled: true,
         encryption_enabled: true,
     };
+    #[cfg(not(feature = "perf-engine"))]
+    let _perf_config = (); // placeholder — perf-engine feature not enabled
 
     let http_engine = SecurityEngine::new(SecurityConfig {
         max_request_size: sec_config.max_request_size,
@@ -120,11 +127,14 @@ async fn main() -> Result<()> {
         worker_threads: sec_config.worker_threads,
         batch_size: sec_config.batch_size,
     });
+    #[cfg(feature = "perf-engine")]
     let mut performance_engine = PerformanceEngine::new(perf_config)?;
+    #[cfg(feature = "perf-engine")]
     performance_engine.start().await?;
 
     let state = Arc::new(AppState {
         security_engine: http_engine,
+        #[cfg(feature = "perf-engine")]
         performance_engine: Arc::new(tokio::sync::Mutex::new(performance_engine)),
     });
 
@@ -154,14 +164,22 @@ async fn main() -> Result<()> {
         }
     });
 
-    let grpc_host = cli.host.clone();
-    let grpc_port = cli.grpc_port;
+    #[cfg(feature = "grpc")]
+    let grpc_handle = {
+        let grpc_host = cli.host.clone();
+        let grpc_port = cli.grpc_port;
+        tokio::spawn(async move {
+            if let Err(e) = grpc_service::start_grpc_server(grpc_engine, &grpc_host, grpc_port).await {
+                tracing::error!("gRPC server error: {}", e);
+            }
+        })
+    };
+    #[cfg(not(feature = "grpc"))]
     let grpc_handle = tokio::spawn(async move {
-        if let Err(e) = grpc_service::start_grpc_server(grpc_engine, &grpc_host, grpc_port).await {
-            tracing::error!("gRPC server error: {}", e);
-        }
+        tracing::info!("gRPC server disabled (protoc not available)");
     });
 
+    #[cfg(feature = "kafka")]
     let kafka_handle = if cli.enable_kafka {
         let brokers = cli.kafka_brokers.clone();
         let engine = Arc::new(tokio::sync::Mutex::new(
@@ -189,6 +207,11 @@ async fn main() -> Result<()> {
             tracing::info!("Kafka consumer disabled");
         })
     };
+    #[cfg(not(feature = "kafka"))]
+    let kafka_handle = tokio::spawn(async move {
+        let _ = stop_rx.clone();
+        tracing::info!("Kafka consumer disabled (feature not enabled)");
+    });
 
     let _ = tokio::join!(http_handle, grpc_handle, kafka_handle);
     tracing::info!("Engine shutdown complete");

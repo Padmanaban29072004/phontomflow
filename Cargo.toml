@@ -76,9 +76,9 @@ regex = "1.10"
 aho-corasick = "1.1"
 
 # gRPC
-tonic = { version = "0.9", default-features = false, features = ["prost", "codegen", "transport"] }
-prost = "0.11"
-tokio-stream = "0.1"
+tonic = { version = "0.9", default-features = false, features = ["prost", "codegen", "transport"], optional = true }
+prost = { version = "0.11", optional = true }
+tokio-stream = { version = "0.1", optional = true }
 
 # Kafka
 rdkafka = { version = "0.34", features = ["tokio", "cmake_build"] }
@@ -91,7 +91,7 @@ thiserror = "1.0"
 mimalloc = { version = "0.1", default-features = false }
 
 [build-dependencies]
-tonic-build = "0.9"
+tonic-build = { version = "0.9", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
@@ -114,7 +114,10 @@ strip = true
 
 [features]
 default = ["crypto"]
-full = ["ml", "network", "crypto"]
+full = ["ml", "network", "crypto", "kafka", "perf-engine"]
 ml = ["candle-core", "candle-nn", "tch"]
 network = ["pcap", "pnet"]
 crypto = ["ring", "rustls"]
+kafka = []
+perf-engine = []
+grpc = ["tonic", "prost", "tokio-stream"]

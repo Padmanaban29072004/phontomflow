@@ -12,6 +12,12 @@ pub mod phantom_flow_engine {
     tonic::include_proto!("phantom_flow.engine");
 }
 
+/// Returns true if the protoc-generated code is available at runtime
+pub fn is_proto_available() -> bool {
+    // The module compiles, which means tonic-build succeeded at build time
+    true
+}
+
 pub struct SecurityEngineImpl {
     engine: Arc<Mutex<SecurityEngine>>,
 }
