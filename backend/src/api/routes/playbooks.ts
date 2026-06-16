@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import fs from 'fs';
 import path from 'path';
-import { PlaybookExecutor } from '@/core/soar/PlaybookExecutor';
-import { PlaybookSchema, validatePlaybook } from '@/core/soar/types';
+import { PlaybookExecutor } from '../../soar/executor';
+import { PlaybookSchema, validatePlaybook } from '../../soar/playbook.schema';
 
 const playbooksRoutes = Router();
 const executor = new PlaybookExecutor();

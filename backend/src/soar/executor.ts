@@ -4,8 +4,8 @@ import { edrQuarantineAction } from './actions/edr';
 import { iamResetCredentialAction } from './actions/iam';
 import { notifyAction } from './actions/notify';
 import { writePlaybookAuditLog } from './auditLog';
-import { MultiArmedBanditFramework } from '../src/core/bandit/mab';
-import { computeReward } from '../src/core/bandit/reward';
+import { MultiArmedBanditFramework } from '../core/bandit/mab';
+import { computeReward } from '../core/bandit/reward';
 
 export interface PlaybookExecutionResult {
   success: boolean;
@@ -18,13 +18,21 @@ export interface PlaybookExecutionResult {
 export class PlaybookExecutor {
   private readonly bandit = new MultiArmedBanditFramework();
 
-  public async execute(playbook: PlaybookSchema, operator: 'system' | 'human' = 'system'): Promise<PlaybookExecutionResult> {
+  public async execute(playbook: PlaybookSchema, contextOrOperator?: Record<string, any> | 'system' | 'human', maybeOperator?: 'system' | 'human'): Promise<PlaybookExecutionResult> {
+    let operator: 'system' | 'human' = 'system';
+    let context: Record<string, any> = {};
+    if (typeof contextOrOperator === 'string') {
+      operator = contextOrOperator;
+    } else if (contextOrOperator) {
+      context = contextOrOperator;
+      operator = maybeOperator ?? 'system';
+    }
     validatePlaybook(playbook);
     const stepsExecuted: string[] = [];
 
     try {
       for (const step of playbook.steps) {
-        await this.executeWithRetry(playbook.id, step, operator);
+        await this.executeWithRetry(playbook.id, step, operator, context);
         stepsExecuted.push(step.id);
       }
       return { success: true, playbookId: playbook.id, stepsExecuted };
@@ -32,7 +40,7 @@ export class PlaybookExecutor {
       if (playbook.rollback?.length) {
         for (const rollbackStep of playbook.rollback) {
           try {
-            await this.executeAction(rollbackStep);
+            await this.executeAction(rollbackStep, context);
           } catch {
             // best-effort rollback
           }
@@ -68,13 +76,27 @@ export class PlaybookExecutor {
     return result;
   }
 
-  private async executeWithRetry(playbookId: string, step: PlaybookActionStep, operator: 'system' | 'human'): Promise<void> {
+  private interpolate(value: any, context?: Record<string, any>): any {
+    if (!context || typeof value !== 'string') return value;
+    return value.replace(/\{\{(\w+)\}\}/g, (_m: string, key: string) => String(context[key] ?? ''));
+  }
+
+  private resolveParams(params: Record<string, any>, context?: Record<string, any>): Record<string, any> {
+    if (!context) return params;
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(params || {})) {
+      out[k] = this.interpolate(v, context);
+    }
+    return out;
+  }
+
+  private async executeWithRetry(playbookId: string, step: PlaybookActionStep, operator: 'system' | 'human', context?: Record<string, any>): Promise<void> {
     const retries = step.retries ?? 1;
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= retries; attempt += 1) {
       try {
-        const result = await this.executeAction(step);
+        const result = await this.executeAction(step, context);
         await writePlaybookAuditLog({
           playbook_id: playbookId,
           action: `${step.type}:${step.id}`,
@@ -90,16 +112,17 @@ export class PlaybookExecutor {
     throw lastError instanceof Error ? lastError : new Error('Action failed after retries');
   }
 
-  private async executeAction(step: PlaybookActionStep): Promise<{ ok: boolean; detail: string }> {
+  private async executeAction(step: PlaybookActionStep, context?: Record<string, any>): Promise<{ ok: boolean; detail: string }> {
+    const params = this.resolveParams(step.params, context);
     switch (step.type) {
       case 'firewall':
-        return firewallBlockAction(step.params);
+        return firewallBlockAction(params as { sourceIp: string });
       case 'edr':
-        return edrQuarantineAction(step.params);
+        return edrQuarantineAction(params as { hostId: string });
       case 'iam':
-        return iamResetCredentialAction(step.params);
+        return iamResetCredentialAction(params as { userId: string });
       case 'notify':
-        return notifyAction(step.params);
+        return notifyAction(params as { message: string; severity?: string });
       default:
         throw new Error(`Unsupported action type: ${step.type}`);
     }
