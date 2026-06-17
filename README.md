@@ -1,23 +1,30 @@
 # PHANTOM-Flow: Smart Adaptive Defense & SOC Automation Platform
 
-## Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/Build-passing-brightgreen.svg)](#)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](#)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](#)
+[![Go](https://img.shields.io/badge/Go-1.25-blue.svg)](#)
+[![Rust](https://img.shields.io/badge/Rust-2021-orange.svg)](#)
 
-PHANTOM-Flow is a next-generation cybersecurity platform that combines **multi-perspective threat detection**, **SOC L1/L2 automation**, and **closed-loop learning** into a single defense engine. It ingests logs from SIEM/EDR/cloud sources, triages alerts automatically, executes SOAR playbooks, runs L2 investigations via an agent graph, and continuously improves response decisions with multi-armed bandit learning.
+PHANTOM-Flow is an enterprise-grade, multi-language cybersecurity platform that integrates **multi-perspective threat detection**, **SOC L1/L2 automation**, **graph-based threat intelligence**, and **closed-loop feedback learning** into a single cohesive defense engine. 
 
-Instead of relying on a single detection method, PHANTOM-Flow fuses **statistics**, **behavioral patterns**, **relationship graphs**, **payload heuristics**, and **deception** into one pipeline. Every response feeds back into learning so the system gets better at separating real customers from attackers.
+By fusing statistics, behavioral sequences, relationship topologies, payload heuristics, and active deception, PHANTOM-Flow protects modern web infrastructures while dynamically minimizing false positives via contextual reinforcement learning.
 
 ---
 
 ## Table of Contents
 
 - [Architecture Diagrams](#architecture-diagrams)
-- [Default Login Credentials](#default-login-credentials)
-- [Quick Start](#quick-start)
+- [System Capabilities & Algorithmic Core](#system-capabilities--algorithmic-core)
+- [Specialized Security Modules (Python)](#specialized-security-modules-python)
+- [Go & Rust Security Engines](#go--rust-security-engines)
 - [Project Structure](#project-structure)
-- [SOC Automation Phases](#soc-automation-phases)
-- [API Endpoints](#api-endpoints)
-- [Technology Stack](#technology-stack)
-- [Configuration](#configuration)
+- [SOC Automation & Playbooks](#soc-automation--playbooks)
+- [Default Login Credentials](#default-login-credentials)
+- [API Reference](#api-reference)
+- [Configuration Guide](#configuration-guide)
+- [Quick Start & Running Guide](#quick-start--running-guide)
 - [Troubleshooting](#troubleshooting)
 - [Contributing & License](#contributing--license)
 
@@ -25,8 +32,7 @@ Instead of relying on a single detection method, PHANTOM-Flow fuses **statistics
 
 ## Architecture Diagrams
 
-### Closed-loop defense cycle
-
+### Closed-Loop Defense Cycle
 ```mermaid
 flowchart LR
     A[Observe\nLogs & Traffic] --> B[Analyze\n5 Detection Engines]
@@ -36,8 +42,7 @@ flowchart LR
     E --> A
 ```
 
-### End-to-end SOC automation pipeline
-
+### End-to-End SOC Automation Pipeline
 ```mermaid
 flowchart TB
     subgraph Ingest["Phase 1 — Ingestion"]
@@ -83,8 +88,7 @@ flowchart TB
     end
 ```
 
-### Runtime deployment (Docker Compose)
-
+### Runtime Deployment (Docker Compose)
 ```mermaid
 flowchart TB
     subgraph Edge["Edge"]
@@ -120,8 +124,7 @@ flowchart TB
     BE --> RS
 ```
 
-### L2 investigation agent graph
-
+### L2 Investigation Agent Graph
 ```mermaid
 flowchart LR
     IN[Alert Payload] --> CTX[Context Agent]
@@ -133,8 +136,7 @@ flowchart LR
     CTX -.-> TH[TheHive Connector]
 ```
 
-### Detection engine fusion
-
+### Detection Engine Fusion
 ```mermaid
 flowchart TB
     REQ[Inbound Request / Event] --> BA[Behavioral Analyzer]
@@ -156,120 +158,65 @@ flowchart TB
 
 ---
 
-## Default Login Credentials
+## System Capabilities & Algorithmic Core
 
-> **Development only.** Change all passwords before production deployment.
+PHANTOM-Flow integrates several advanced data structures and machine learning algorithms directly into its stream-processing core to perform near-zero latency threat detection and adaptive responses:
 
-### SOC Dashboard (web UI)
-
-| Service | URL | Username | Password | Notes |
-|---------|-----|----------|----------|-------|
-| **PHANTOM-Flow Dashboard** | http://localhost:3000 | `soc-analyst` | `PhantomFlow@2025` | Recommended demo SOC analyst account |
-| **PHANTOM-Flow Dashboard** | http://localhost:3000 | `admin` | `admin` | Alternate demo account |
-
-The dashboard uses **mock authentication** in development: `POST /api/auth/login` accepts any username/password and returns an admin JWT. The credentials above are the **canonical demo pair** for SOC analyst walkthroughs.
-
-```bash
-# Verify login via API
-curl -X POST http://localhost:3001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"soc-analyst","password":"PhantomFlow@2025"}'
-```
-
-### Infrastructure services (Docker Compose defaults)
-
-| Service | URL | Username | Password / Token |
-|---------|-----|----------|-------------------|
-| **Neo4j Browser** | http://localhost:7474 | `neo4j` | `dev-password-123` |
-| **MongoDB** | `mongodb://localhost:27017` | `admin` | `dev-password-456` |
-| **InfluxDB** | http://localhost:8086 | `admin` | `dev-password-456` |
-| **InfluxDB API token** | — | — | `dev-token-789` |
-
-Override via environment variables in `.env` or `docker-compose.yml`: `NEO4J_PASSWORD`, `MONGO_USER`, `MONGO_PASSWORD`, `INFLUXDB_USER`, `INFLUXDB_PASSWORD`, `INFLUXDB_TOKEN`.
-
-### Deception / honeypot traps (not dashboard login)
-
-These credentials are **intentionally fake** — they trigger deception traps when attackers use them:
-
-| Credential trap | Purpose |
-|----------------|---------|
-| `admin:admin123` | Fake admin login trap |
-| `root:password` | Fake root credential trap |
-| `test:test123` | Fake test account trap |
+| Algorithm / Component | Purpose | Target / Implementation Path |
+|---|---|---|
+| **Count-Min Sketch** | Memory-efficient cardinality and sub-second frequency estimation for rate/error spikes. | `backend/src/core/sketch/` (Redis backed) |
+| **HyperLogLog (HLL)** | Cardinality estimation for tracking unique visitor metrics, IP counts, and geo-spikes. | `backend/src/core/hyperloglog/` (Redis backed) |
+| **Markov Chain Sequences** | N-order behavioral state flow sequence modeling to detect anomalous navigation paths. | `backend/src/core/markov/` (Redis backed) |
+| **Advanced EWMA** | Multi-window Exponentially Weighted Moving Average for baseline tracking & concept drift detection. | `backend/src/core/ewma/` |
+| **Adaptive Rate Limiting** | Dynamic policy engine backing token-bucket & sliding-window rate limiters based on risk scores. | `backend/src/core/rateLimit/` |
+| **Thompson Sampling MAB** | Multi-Armed Bandit framework selecting defense actions (Allow, Block, Challenge) based on feedback rewards. | `backend/src/core/bandit/` |
+| **TensorFlow.js (AI Core)** | Real-time neural network threat scoring model integrated into the TypeScript backend. | `backend/src/core/ThreatDetectionEngine.ts` |
 
 ---
 
-## Quick Start
+## Specialized Security Modules (Python)
 
-### Prerequisites
+PHANTOM-Flow features dedicated Python security modules that enable advanced analysis, post-quantum compliance, and penetration testing simulations:
 
-| Requirement | Version | Required |
-|-------------|---------|----------|
-| Node.js | 18+ | Yes |
-| npm | 9+ | Yes |
-| Docker & Docker Compose | Latest | Optional (full stack) |
-| Python | 3.10+ | Optional (L2 agent) |
-| Go | 1.22+ | Optional |
-| Rust | stable | Optional |
+### 1. Post-Quantum Cryptography & Threat Simulator (`quantum_security/`)
+- **Quantum Attack Simulation**: Assesses the threat levels of classic cryptographic suites against Shor's and Grover's algorithms.
+- **Key Generation**: Simulates post-quantum public-key exchange and signatures (Lattice-based KEM like CRYSTALS-Kyber, Code-based Classic McEliece, Multivariate, Hash-based signatures, and Isogeny-based keys).
+- **Location**: `quantum_security/quantum_cryptography.py`
 
-### Option A — Local development (Node only)
+### 2. DeFi & Smart Contract Security Auditor (`blockchain_security/`)
+- **Static Analysis**: Detects critical Solidity vulnerability patterns, including Reentrancy, Integer Overflow/Underflow, Access Control failures, Weak Randomness, and Timestamp dependency.
+- **DeFi Guardrails**: Inspects flash loan integrations, Oracle manipulation vectors (e.g. price feeds, lack of TWAP validation), and governance delay (timelock) validations.
+- **Gas Auditing**: Analyzes gas-inefficient patterns and estimates savings (e.g. loop length caching, memory vs storage optimization).
+- **Location**: `blockchain_security/smart_contract_auditor.py`
 
-```bash
-git clone <repository-url>
-cd phontomflow
+### 3. Penetration Testing Framework (`security_tools/`)
+- **Port Scanner**: Multithreaded TCP SYN and UDP port scanner utilizing raw sockets and Nmap bindings.
+- **Service Enumeration**: Identifies target banners, version detection, anonymous FTP checks, and weak SSH cipher analysis.
+- **Web Vuln Scanner**: Automated scans for SQL Injection (SQLi), Cross-Site Scripting (XSS), Command Injection (CMDi), SSL/TLS vulnerabilities, and directory enumeration.
+- **Location**: `security_tools/penetration_testing.py`
 
-# Backend
-cd backend
-cp env.example .env
-npm install
-npm run dev          # http://localhost:3001
+---
 
-# Frontend (new terminal)
-cd ../frontend
-npm install
-npm run dev          # http://localhost:3000
-```
+## Go & Rust Security Engines
 
-Sign in at http://localhost:3000 with **`soc-analyst` / `PhantomFlow@2025`**.
+For performance-critical processing, PHANTOM-Flow offloads compute-heavy tasks to Go and Rust subsystems:
 
-### Option B — Full stack with Docker
+### Rust Security Engine (`src/` / `Cargo.toml`)
+- **Role**: High-performance packet capture and security filtering layer.
+- **Capabilities**:
+  - Raw packet sniffing utilizing `pcap` / `pnet`.
+  - gRPC service using `tonic` / `prost` to communicate with the Node.js orchestrator.
+  - Native machine learning inferences utilizing `candle-core` (Rust-native tensor framework) and PyTorch (`tch-rs`).
+  - Kafka consumer/producer bindings using `rdkafka`.
+- **Location**: Rust files are situated in the root directory (`src/`, `Cargo.toml`, `build.rs`).
 
-```bash
-git clone <repository-url>
-cd phontomflow
-docker compose up -d
-```
-
-| Service | URL |
-|---------|-----|
-| Dashboard | http://localhost:3000 |
-| Backend API | http://localhost:3001 |
-| API docs | http://localhost:3001/api/docs |
-| Neo4j Browser | http://localhost:7474 |
-| Health check | http://localhost:3001/health |
-
-### Option C — L2 investigation agent (standalone)
-
-```bash
-cd services/l2-agent
-pip install fastapi uvicorn httpx
-uvicorn main:app --host 0.0.0.0 --port 8000
-
-# Trigger via backend proxy
-curl -X POST http://localhost:3001/api/l2/investigate \
-  -H "Content-Type: application/json" \
-  -d '{"alert_id":"demo-001","severity":"high","src_ip":"203.0.113.10"}'
-```
-
-### Run tests
-
-```bash
-# Backend bandit learning tests
-cd backend && npm test
-
-# L2 agent tests
-pytest tests/l2_agent_test.py
-```
+### Go Microservices (`cmd/` / `go.mod`)
+- **Role**: Concurrent log aggregation and high-speed scanner agents.
+- **Sub-Services**:
+  - `security-server` (`cmd/security-server/`): A high-concurrency event gateway implementing gRPC and WebSocket APIs, persistent configuration caching, and Kafka log producer routing.
+  - `log-analyzer` (`cmd/log-analyzer/`): High-speed regex parser engine that reads raw system/web logs and transforms them into normalized Kafka alerts.
+  - `threat-scanner` (`cmd/threat-scanner/`): Rapid IP/CIDR threat intelligence reputation checker.
+- **Location**: Go services reside in `cmd/`, common code in `internal/`, and module definitions in `go.mod` / `go.sum`.
 
 ---
 
@@ -277,117 +224,92 @@ pytest tests/l2_agent_test.py
 
 ```
 phontomflow/
-├── backend/
-│   ├── src/                    # Runtime TypeScript server
-│   │   ├── core/               # Detection engines, EWMA, Markov, bandit
-│   │   ├── api/routes/         # REST routes (auth, threats, playbooks, l2, graph)
-│   │   └── services/           # Redis, deception, metrics, integrations
-│   ├── ingestion/              # Phase 1 — Kafka, normaliser, enrichment
-│   ├── detection/              # Phase 2 — Sigma, YARA, TTP mapper, heuristics
-│   ├── triage/                 # Phase 2 — Decision engine, whitelist
-│   ├── soar/                   # Phase 3 — Playbooks, executor, actions
-│   ├── bandit/                 # Phase 6 — Thompson sampling, MAB rewards
-│   ├── graph/                  # Phase 5 — Kill chain, lateral movement
-│   └── db/                     # Neo4j client & schema
-├── frontend/                   # React + Vite SOC dashboard
-├── services/l2-agent/          # Phase 4 — Python L2 investigation service
-├── tests/                      # Integration & E2E tests
-├── .github/workflows/          # CI/CD pipelines
-├── docker-compose.yml          # Full stack orchestration
-├── claude.md                   # SOC build plan (Phases 1–6, T1–T48)
-└── ai.md                       # Implementation status tracker
+├── backend/                         # Node.js/TypeScript Core REST API & Triage orchestrator
+│   ├── src/
+│   │   ├── core/                    # ThreatDetectionEngine, EWMA, Markov, HLL, Count-Min, MAB
+│   │   ├── api/routes/              # Express REST endpoints
+│   │   └── services/                # Redis, Deception, Metrics, Socket.IO
+│   ├── ingestion/                   # Ingestion pipeline, Kafka consumer, normalizer, enrichers
+│   ├── detection/                   # Sigma parser, YARA rules, Payload Heuristics
+│   ├── triage/                      # Whitelist suppression, decisionEngine (close/auto-respond/escalate)
+│   ├── soar/                        # Playbook schema, executor, and actions (firewall, EDR, IAM, notify)
+│   ├── db/                          # Neo4j and MongoDB driver connections
+│   ├── graph/                       # Kill chain and lateral movement Cypher queries
+│   └── bandit/                      # Thompson sampling MAB framework
+├── frontend/                        # React + Vite + Tailwind CSS SOC Dashboard
+│   ├── src/
+│   │   ├── pages/                   # Analytics, Dashboard, Deception, Graph, Setup, Threats
+│   │   ├── components/              # Layout, Graph visuals, auth context, bandit performance
+│   │   └── services/                # API client connection services
+├── services/l2-agent/               # Python LangGraph L2 Investigation Microservice
+├── ml_service/                      # Python FastAPI TensorFlow ML Classification Service
+├── quantum_security/                # Post-Quantum Cryptography & Quantum Threat Simulation Module
+├── blockchain_security/             # DeFi & Solidity Smart Contract Auditing Platform
+├── security_tools/                  # Network & Web Application Penetration Testing Framework
+├── k8s/                             # Kubernetes deployment manifests
+├── docker-compose.yml               # Full stack orchestration compose file
+├── Cargo.toml                       # Rust workspace and dependency configuration
+├── go.mod                           # Go workspace and module definition
+├── package.json                     # Root NPM workspace definitions
+└── claude.md                        # SOC build plan (Phases 1–6, T1–T48)
 ```
 
 ---
 
-## SOC Automation Phases
+## SOC Automation & Playbooks
 
-| Phase | Goal | Key paths |
-|-------|------|-----------|
-| **1** | Unified log ingestion & enrichment | `backend/ingestion/` |
-| **2** | L1 alert triage & noise reduction | `backend/detection/`, `backend/triage/` |
-| **3** | SOAR playbook execution | `backend/soar/playbooks/` |
-| **4** | L2 autonomous investigation | `services/l2-agent/` |
-| **5** | Neo4j graph threat intelligence | `backend/graph/`, `backend/db/` |
-| **6** | Bandit-based response learning | `backend/bandit/` |
-
-Built-in SOAR playbooks:
-
-- `brute_force_response`
-- `port_scan_response`
-- `malware_hash_block`
-- `data_exfil_response`
-- `honeypot_trigger_response`
-
-Trigger example:
-
-```bash
-curl -X POST http://localhost:3001/api/playbooks/brute_force_response/trigger \
-  -H "Content-Type: application/json" \
-  -d '{"src_ip":"198.51.100.42","severity":"high"}'
-```
+PHANTOM-Flow operates a graduated triage and defense flow:
+1. **L1 Triage**: Incoming normalized logs are analyzed by the 5 detection engines. The `decisionEngine.ts` decides whether to **Close** the alert (false positive), **Auto-Respond** (executes SOAR playbooks), or **Escalate** (sends to Python L2 agent).
+2. **SOAR Playbooks**: When playbooks trigger, the `executor.ts` runs ordered JSON recipes:
+   - `port_scan_response`: Escalates rate limits and adds temporary firewall blocks.
+   - `brute_force_response`: Forces credential lockouts and resets accounts.
+   - `data_exfil_response`: Isolates affected hosts using EDR quarantines.
+   - `malware_hash_block`: Updates host and network blacklists.
+   - `honeypot_trigger_response`: Diverts attacker sessions to decoy traps.
 
 ---
 
-## API Endpoints
+## Default Login Credentials
+
+> [!WARNING]
+> **Development configuration only.** Change all passwords before deploying to a public network.
+
+### SOC Web Dashboard
+- **URL**: `http://localhost:3000`
+- **Analyst Login**: `soc-analyst` / `PhantomFlow@2025`
+- **Admin Login**: `admin` / `admin`
+
+### Database & Message Queue defaults
+- **Neo4j Browser**: `http://localhost:7474` (`neo4j` / `dev-password-123`)
+- **MongoDB**: `mongodb://localhost:27017` (`admin` / `dev-password-456`)
+- **InfluxDB**: `http://localhost:8086` (`admin` / `dev-password-456`, token: `dev-token-789`)
+- **Kafka**: `localhost:9092`
+
+---
+
+## API Reference
 
 ### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/login` | User login |
-| `POST` | `/api/auth/logout` | Session logout |
-| `GET` | `/api/auth/verify` | Token validation |
-| `GET` | `/api/auth/profile` | User profile |
+- `POST /api/auth/login` - User authentication and JWT distribution.
+- `GET /api/auth/verify` - Token validation and routing auth.
 
 ### Threats & Dashboard
+- `GET /api/threats` - Retrieves threat logs and ongoing alerts.
+- `GET /api/dashboard/overview` - Fetches live risk score, active threats, and honeypot events.
+- `GET /api/dashboard/analytics` - Pulls historical time-series analytics.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/threats` | List threats |
-| `GET` | `/api/dashboard/overview` | System overview |
-| `GET` | `/api/dashboard/analytics` | Analytics data |
-| `GET` | `/api/metrics/real-time` | Live metrics |
-
-### SOC automation
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/playbooks/:id/trigger` | Execute SOAR playbook |
-| `GET` | `/api/playbooks` | List playbooks |
-| `POST` | `/api/l2/investigate` | Proxy to L2 agent |
-| `GET` | `/api/graph/*` | Neo4j graph queries |
-| `GET` | `/api/bandit/*` | Bandit learning metrics |
-
-### Deception & Health
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/deception/events` | Honeypot events |
-| `POST` | `/api/deception/trigger` | Manual trap trigger |
-| `GET` | `/health` | Server health |
-
-Full interactive docs: **http://localhost:3001/api/docs**
+### Triage & SOAR
+- `POST /api/playbooks/:id/trigger` - Manually executes a SOAR playbook.
+- `POST /api/l2/investigate` - Forwards threat payloads to the Python LangGraph L2 agent.
+- `GET /api/graph/killchain` - Cypher queries to extract graph-based threat topologies from Neo4j.
 
 ---
 
-## Technology Stack
+## Configuration Guide
 
-| Layer | Technologies |
-|-------|-------------|
-| **Core API** | Node.js, Express, TypeScript |
-| **Frontend** | React, Vite, Tailwind CSS, Recharts |
-| **ML / L2** | Python, FastAPI, LangGraph-style agents |
-| **Data** | MongoDB, Redis, InfluxDB, Neo4j, Kafka |
-| **High-perf** | Go microservices, Rust security engine |
-| **Security** | JWT, bcrypt, Helmet, rate limiting, deception layer |
+Configure each subsystem by copying environment files:
 
----
-
-## Configuration
-
-Copy `backend/env.example` to `backend/.env`:
-
+### Backend Configuration (`backend/.env`)
 ```env
 NODE_ENV=development
 PORT=3001
@@ -402,42 +324,109 @@ L2_AGENT_URL=http://127.0.0.1:8000
 HONEYPOT_ENABLED=true
 ```
 
-Frontend (`frontend/.env`):
-
+### Frontend Configuration (`frontend/.env`)
 ```env
 VITE_API_URL=http://localhost:3001
 ```
 
 ---
 
+## Quick Start & Running Guide
+
+### Option A — Full Stack Deploy (Docker Compose)
+To launch all services, databases, and message queues:
+```bash
+docker compose up -d
+```
+
+### Option B — Run Services Separately (Local Dev)
+
+#### 1. Core Web Stack (Node & React)
+```bash
+# Start Backend Orchestrator
+cd backend
+npm install
+npm run dev # Launches API server on port 3001
+
+# Start React Frontend (in a new shell)
+cd ../frontend
+npm install
+npm run dev # Launches Web UI on port 3000
+```
+
+#### 2. LangGraph L2 Agent (Python)
+Ensure Python 3.10+ is installed:
+```bash
+cd services/l2-agent
+pip install fastapi uvicorn httpx langgraph langchain-openai
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+#### 3. Python ML Inference Service (`ml_service`)
+```bash
+cd ml_service
+pip install -r requirements.txt
+python run.py # Launches FastAPI on port 8000 (configurable via PORT env)
+```
+
+#### 4. Rust Security Engine (`src/`)
+Requires Rust and Cargo installed:
+```bash
+# Build and run the security engine with all features enabled
+cargo run --features "full"
+```
+
+#### 5. Go Microservices (`cmd/`)
+Requires Go 1.25 installed:
+```bash
+# Run the main security and WebSocket gateway server
+go run cmd/security-server/main.go cmd/security-server/kafka.go cmd/security-server/grpc.go
+
+# Run the high-speed log aggregation/analysis client
+go run cmd/log-analyzer/main.go
+
+# Run the reputation threat intelligence scanner
+go run cmd/threat-scanner/main.go
+```
+
+#### 6. Specialized Python Tools
+To test or execute the standalone auditing and scanning tools:
+```bash
+# Run Post-Quantum Cryptography & Threat assessment simulator
+python quantum_security/quantum_cryptography.py
+
+# Run DeFi Smart Contract Solidity Auditor
+python blockchain_security/smart_contract_auditor.py
+
+# Run Pentest and Vulnerability scanner
+python security_tools/penetration_testing.py
+```
+
+---
+
 ## Troubleshooting
 
-| Issue | Fix |
-|-------|-----|
-| Backend won't start | Check `.env`, Redis/Mongo availability; backend continues if Kafka is down |
-| Login fails | Ensure backend is on `:3001`; mock auth accepts any credentials in dev |
-| Playbook not found | Run backend from `backend/` cwd or ensure `soar/playbooks/` is reachable |
-| L2 investigate fails | Start L2 agent on port 8000; set `L2_AGENT_URL` |
-| `tsc` errors | Run `npx tsc --noEmit` in `backend/` |
-| Docker build fails | Ensure Docker daemon is running |
-
-Logs: `backend/logs/combined.log`, `backend/logs/error.log`
+- **gRPC connection errors**: Ensure the Go Server (`:8080`) or Rust Engine (`:9090`) are listening, and check that firewall ports are configured properly.
+- **Neo4j connection errors**: Verify Neo4j status by accessing `http://localhost:7474`. Make sure bolt authentication matches your `NEO4J_PASSWORD` in `backend/.env`.
+- **Kafka connection drops**: The Node.js and Go microservices will continue running if Kafka is temporarily unreachable. Verify docker containers are active: `docker compose ps`.
 
 ---
 
 ## Contributing & License
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+1. Fork the repository.
+2. Develop features in a separate branch.
+3. Validate and run test suites:
+   ```bash
+   cd backend && npm test
+   pytest tests/
+   ```
+4. Open a pull request.
 
-**License:** MIT — see [LICENSE](LICENSE)
+**License**: MIT — see [LICENSE](LICENSE)
 
-**Security issues:** email security@phantom-flow.com (do not open public issues)
+**Security issues**: Email security@phantom-flow.com (please do not open public GitHub issues).
 
 ---
 
-**PHANTOM-Flow** — turning cybersecurity from reactive catch-up into proactive, intelligence-driven defense.
-
-*Multi-language platform: TypeScript core · Python L2/ML · Go services · Rust engine · React SOC dashboard*
+**PHANTOM-Flow** — Turning reactive cybersecurity into dynamic, intelligence-driven, automated defense.
