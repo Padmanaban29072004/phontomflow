@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [backend, go-server, rust-engine]
+        service: [backend, go-server, rust-engine, l2-agent]
     steps:
       - uses: actions/checkout@v4
 
@@ -58,7 +58,7 @@ jobs:
         if: matrix.service == 'go-server'
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version-file: 'go.mod'
           cache: true
       - name: Test Go
         if: matrix.service == 'go-server'
@@ -72,6 +72,17 @@ jobs:
       - name: Test Rust
         if: matrix.service == 'rust-engine'
         run: cargo test --verbose
+
+      - name: Setup Python
+        if: matrix.service == 'l2-agent'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test Python L2 Agent
+        if: matrix.service == 'l2-agent'
+        run: |
+          pip install pytest
+          python -m pytest tests/l2_agent_test.py
 
   security-scan:
     name: Security Scan

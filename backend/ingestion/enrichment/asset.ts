@@ -27,7 +27,7 @@ export async function enrichWithAssetContext(event: UnifiedEventSchema): Promise
     };
   }
 
-  const asset = await AssetModel.findOne({ $or: [{ ip: event.src_ip }, { hostname: event.host }] }).lean();
+  const asset: any = await AssetModel.findOne({ $or: [{ ip: event.src_ip }, { hostname: event.host }] }).lean();
   if (!asset) {
     return {
       ...event,

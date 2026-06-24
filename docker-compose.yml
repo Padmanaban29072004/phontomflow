@@ -267,7 +267,7 @@ services:
   ml-service:
     build:
       context: .
-      dockerfile: Dockerfile.python-ml
+      dockerfile: Dockerfile.ml-service
     container_name: phantom-flow-ml-service
     ports:
       - "8000:8000"
