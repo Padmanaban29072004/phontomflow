@@ -29,22 +29,23 @@ const SEVERITY_TO_SCORE: Record<string, number> = {
   low: 0.3,
 }
 
-export function normalizeThreat(raw: Record<string, unknown>): MockThreat {
-  const severity = String(raw.severity ?? raw.riskLevel ?? 'medium').toLowerCase()
-  const details = raw.details as Record<string, unknown> | undefined
+export function normalizeThreat(raw: Record<string, unknown> | null | undefined): MockThreat {
+  const safeRaw = raw ?? {}
+  const severity = String(safeRaw.severity ?? safeRaw.riskLevel ?? 'medium').toLowerCase()
+  const details = safeRaw.details as Record<string, unknown> | undefined
 
   return {
-    id: String(raw.id ?? raw._id ?? `threat-${Math.random().toString(36).slice(2)}`),
-    ipAddress: String(raw.ipAddress ?? 'Unknown'),
+    id: String(safeRaw.id ?? safeRaw._id ?? `threat-${Math.random().toString(36).slice(2)}`),
+    ipAddress: String(safeRaw.ipAddress ?? 'Unknown'),
     riskLevel: SEVERITY_TO_RISK[severity] ?? 'medium',
-    threatScore: Number(raw.threatScore ?? SEVERITY_TO_SCORE[severity] ?? 0.5),
-    userAgent: String(raw.userAgent ?? details?.userAgent ?? 'Unknown'),
-    timestamp: String(raw.timestamp ?? new Date().toISOString()),
-    threatType: Array.isArray(raw.threatType)
-      ? (raw.threatType as string[])
-      : [String(raw.type ?? 'unknown')],
-    status: (raw.status as MockThreat['status']) ?? 'active',
-    country: raw.country as string | undefined,
+    threatScore: Number(safeRaw.threatScore ?? SEVERITY_TO_SCORE[severity] ?? 0.5),
+    userAgent: String(safeRaw.userAgent ?? details?.userAgent ?? 'Unknown'),
+    timestamp: String(safeRaw.timestamp ?? new Date().toISOString()),
+    threatType: Array.isArray(safeRaw.threatType)
+      ? (safeRaw.threatType as string[])
+      : [String(safeRaw.type ?? 'unknown')],
+    status: (safeRaw.status as MockThreat['status']) ?? 'active',
+    country: safeRaw.country as string | undefined,
   }
 }
 

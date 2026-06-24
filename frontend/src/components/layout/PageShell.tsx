@@ -21,7 +21,7 @@ export function PageShell({
 }: PageShellProps) {
   return (
     <div
-      className={`w-full min-h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden bg-gray-50 ${className}`}
+      className={`w-full flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-gray-50 ${className}`}
     >
       <div
         className={`mx-auto w-full max-w-[1600px] space-y-4 ${

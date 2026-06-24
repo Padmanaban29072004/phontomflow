@@ -145,7 +145,7 @@ export function BanditPerformancePanel() {
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-xs text-gray-500">Recent Avg Reward</p>
-              <p className="text-xl font-bold text-gray-900">{feedbackStats.recentRewardAvg.toFixed(3)}</p>
+              <p className="text-xl font-bold text-gray-900">{(feedbackStats.recentRewardAvg ?? 0).toFixed(3)}</p>
             </div>
           </div>
 
@@ -187,7 +187,7 @@ export function BanditPerformancePanel() {
                     {entry.name}
                   </p>
                   <p className="text-sm font-bold text-gray-900">{entry.selectionCount}</p>
-                  <p className="text-xs text-gray-400">{entry.avgReward.toFixed(3)}</p>
+                  <p className="text-xs text-gray-400">{(entry.avgReward ?? 0).toFixed(3)}</p>
                 </div>
               ))}
             </div>
