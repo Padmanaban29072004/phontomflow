@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useAuth } from './AuthContext'
 import toast from 'react-hot-toast'
@@ -31,44 +31,49 @@ const SocketContext = createContext<SocketContextValue | null>(null)
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { token } = useAuth()
-  const socketRef = useRef<Socket | null>(null)
+  const [socket, setSocket] = useState<Socket | null>(null)
   const [connected, setConnected] = useState(false)
   const [lastThreatUpdate, setLastThreatUpdate] = useState<ThreatUpdate | null>(null)
   const [lastDeceptionUpdate, setLastDeceptionUpdate] = useState<DeceptionUpdate | null>(null)
 
   useEffect(() => {
-    if (!token) return
+    if (!token) {
+      setSocket(null)
+      setConnected(false)
+      return
+    }
 
-    const socket = io({ auth: { token } })
+    const instance = io({ auth: { token } })
 
-    socket.on('connect', () => {
+    instance.on('connect', () => {
       setConnected(true)
-      socket.emit('join-dashboard')
+      instance.emit('join-dashboard')
     })
 
-    socket.on('disconnect', () => setConnected(false))
+    instance.on('disconnect', () => setConnected(false))
 
-    socket.on('threat-update', (data: ThreatUpdate) => {
+    instance.on('threat-update', (data: ThreatUpdate) => {
       setLastThreatUpdate(data)
       toast.error(`Threat detected: ${data.type} from ${data.ipAddress}`, { id: 'threat-alert' })
     })
 
-    socket.on('deception-update', (data: DeceptionUpdate) => {
+    instance.on('deception-update', (data: DeceptionUpdate) => {
       setLastDeceptionUpdate(data)
     })
 
-    socketRef.current = socket
+    setSocket(instance)
 
     return () => {
-      socket.disconnect()
-      socketRef.current = null
+      instance.disconnect()
+      setSocket(null)
+      setConnected(false)
     }
   }, [token])
 
   return (
     <SocketContext.Provider
       value={{
-        socket: socketRef.current,
+        socket,
         connected,
         lastThreatUpdate,
         lastDeceptionUpdate,

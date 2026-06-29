@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { graphApi } from '../../services/api'
+import toast from 'react-hot-toast'
 
 interface GraphControlsProps {
   onRefresh: () => void
@@ -33,8 +34,9 @@ export function GraphControls({
       a.download = `graph-export-${framework}.json`
       a.click()
       URL.revokeObjectURL(url)
+      toast.success(`Exported graph as ${framework}`)
     } catch {
-      // silent
+      toast.error('Export failed — Neo4j may be offline')
     }
     setExporting(false)
   }
@@ -42,60 +44,42 @@ export function GraphControls({
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-400">Search</label>
+        <label className="mb-1 block text-xs font-medium text-gray-600">Search</label>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search nodes..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
       </div>
 
       <div className="space-y-2">
         <button
           onClick={onRefresh}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-800 px-3 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-700"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
           Refresh Graph
         </button>
 
         <button
           onClick={onRunThreatDetection}
           disabled={isThreatDetecting}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-900/50 px-3 py-2 text-sm font-medium text-red-300 transition-colors hover:bg-red-900/70 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 disabled:opacity-50"
         >
-          {isThreatDetecting ? (
-            <>
-              <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Detecting...
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-              Run Threat Detection
-            </>
-          )}
+          {isThreatDetecting ? 'Detecting...' : 'Run Threat Detection'}
         </button>
       </div>
 
       <div>
-        <label className="mb-2 block text-xs font-medium text-gray-400">Export Graph</label>
+        <label className="mb-2 block text-xs font-medium text-gray-600">Export Graph</label>
         <div className="grid grid-cols-3 gap-1.5">
           {['pyg', 'dgl', 'tf-gnn'].map((fw) => (
             <button
               key={fw}
               onClick={() => handleExport(fw)}
               disabled={exporting}
-              className="rounded bg-gray-800 px-2 py-1.5 text-xs font-medium text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-200 disabled:opacity-50"
+              className="rounded border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
             >
               {fw}
             </button>

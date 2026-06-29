@@ -7,7 +7,8 @@
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "build": "cd frontend && npm run build",
-    "install:all": "cd backend && npm install && cd ../frontend && npm install"
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "test": "npm test --prefix backend && python -m pytest tests/l2_agent_test.py"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

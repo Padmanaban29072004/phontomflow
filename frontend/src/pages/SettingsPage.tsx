@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useQuery, useMutation } from 'react-query'
+import { useMutation } from 'react-query'
 import api from '../services/api'
 import {
   Cog6ToothIcon,
@@ -8,87 +8,78 @@ import {
   ServerIcon,
 } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
+import { PageShell } from '../components/layout/PageShell'
 
-export const SettingsPage: React.FC = () => {
-  const [settings, setSettings] = useState({
-    notifications: true,
-    autoBlock: false,
-    threatThreshold: 0.7,
-    refreshInterval: 30,
-  })
+const SETTINGS_KEY = 'phantom-flow-settings'
 
-  useQuery(
-    'user-settings',
-    () => api.get('/settings').catch(() => ({ data: null })),
-    {
-      retry: 1,
-      onSuccess: (data: any) => {
-        if (data?.data) {
-          setSettings({ ...settings, ...data.data })
-        }
-      },
+const DEFAULT_SETTINGS = {
+  notifications: true,
+  autoBlock: false,
+  threatThreshold: 0.7,
+  refreshInterval: 30,
+}
+
+export function SettingsPage() {
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS)
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem(SETTINGS_KEY)
+    if (!savedSettings) return
+    try {
+      const parsed = JSON.parse(savedSettings)
+      setSettings((prev) => ({ ...prev, ...parsed }))
+    } catch {
+      // ignore invalid local storage
     }
-  )
+  }, [])
 
   const saveSettingsMutation = useMutation(
-    (newSettings: any) => api.post('/settings', newSettings).catch(() => {
-      localStorage.setItem('phantom-flow-settings', JSON.stringify(newSettings))
-      return { data: { success: true } }
-    }),
+    async (newSettings: typeof DEFAULT_SETTINGS) => {
+      try {
+        await api.post('/settings', newSettings)
+      } catch {
+        // Backend may not implement /settings — persist locally
+      }
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings))
+      return { success: true }
+    },
     {
       onSuccess: () => {
-        toast.success('Settings saved successfully')
-        localStorage.setItem('phantom-flow-settings', JSON.stringify(settings))
+        toast.success('Settings saved')
       },
       onError: () => {
-        localStorage.setItem('phantom-flow-settings', JSON.stringify(settings))
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
         toast.success('Settings saved locally')
       },
     }
   )
-
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('phantom-flow-settings')
-    if (savedSettings) {
-      try {
-        const parsed = JSON.parse(savedSettings)
-        setSettings({ ...settings, ...parsed })
-      } catch (e) {
-        console.error('Error loading settings from localStorage:', e)
-      }
-    }
-  }, [])
 
   const handleSave = () => {
     saveSettingsMutation.mutate(settings)
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 gap-4">
-      <div className="flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-sm text-gray-500">Configure your PHANTOM-Flow system preferences</p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto max-w-4xl space-y-4">
+    <PageShell
+      title="Settings"
+      description="Configure your PHANTOM-Flow system preferences"
+    >
+      <div className="max-w-4xl space-y-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center mb-4">
             <BellIcon className="h-6 w-6 text-gray-400 mr-3" />
             <h2 className="text-lg font-semibold text-gray-900">Notifications</h2>
           </div>
-          <div className="space-y-4">
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Enable notifications</span>
-              <input
-                type="checkbox"
-                checked={settings.notifications}
-                onChange={(e) =>
-                  setSettings({ ...settings, notifications: e.target.checked })
-                }
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-            </label>
-          </div>
+          <label className="flex items-center justify-between">
+            <span className="text-sm text-gray-700">Enable notifications</span>
+            <input
+              type="checkbox"
+              checked={settings.notifications}
+              onChange={(e) =>
+                setSettings({ ...settings, notifications: e.target.checked })
+              }
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </label>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -130,22 +121,23 @@ export const SettingsPage: React.FC = () => {
             <ServerIcon className="h-6 w-6 text-gray-400 mr-3" />
             <h2 className="text-lg font-semibold text-gray-900">System Settings</h2>
           </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Data Refresh Interval (seconds): {settings.refreshInterval}
-              </label>
-              <input
-                type="number"
-                min="5"
-                max="300"
-                value={settings.refreshInterval}
-                onChange={(e) =>
-                  setSettings({ ...settings, refreshInterval: parseInt(e.target.value) })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Data Refresh Interval (seconds): {settings.refreshInterval}
+            </label>
+            <input
+              type="number"
+              min="5"
+              max="300"
+              value={settings.refreshInterval}
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  refreshInterval: parseInt(e.target.value, 10) || 30,
+                })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
           </div>
         </div>
 
@@ -160,6 +152,6 @@ export const SettingsPage: React.FC = () => {
           </button>
         </div>
       </div>
-    </div>
+    </PageShell>
   )
 }

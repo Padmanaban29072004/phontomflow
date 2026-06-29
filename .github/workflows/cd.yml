@@ -81,12 +81,12 @@ jobs:
         run: |
           cd k8s
           kustomize edit set image \
-            ghcr.io/${{ github.repository }}/backend=${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/frontend=${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/go-server=${{ env.REGISTRY }}/${{ github.repository }}/go-server:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/rust-engine=${{ env.REGISTRY }}/${{ github.repository }}/rust-engine:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/ml-service=${{ env.REGISTRY }}/${{ github.repository }}/ml-service:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/nginx=${{ env.REGISTRY }}/${{ github.repository }}/nginx:${{ env.IMAGE_TAG }}
+            ghcr.io/phantom-flow/backend=${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/frontend=${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/go-server=${{ env.REGISTRY }}/${{ github.repository }}/go-server:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/rust-engine=${{ env.REGISTRY }}/${{ github.repository }}/rust-engine:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/ml-service=${{ env.REGISTRY }}/${{ github.repository }}/ml-service:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/nginx=${{ env.REGISTRY }}/${{ github.repository }}/nginx:${{ env.IMAGE_TAG }}
           kustomize build . | kubectl apply -f -
 
       - name: Verify Deployment
@@ -119,12 +119,12 @@ jobs:
         run: |
           cd k8s
           kustomize edit set image \
-            ghcr.io/${{ github.repository }}/backend=${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/frontend=${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/go-server=${{ env.REGISTRY }}/${{ github.repository }}/go-server:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/rust-engine=${{ env.REGISTRY }}/${{ github.repository }}/rust-engine:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/ml-service=${{ env.REGISTRY }}/${{ github.repository }}/ml-service:${{ env.IMAGE_TAG }} \
-            ghcr.io/${{ github.repository }}/nginx=${{ env.REGISTRY }}/${{ github.repository }}/nginx:${{ env.IMAGE_TAG }}
+            ghcr.io/phantom-flow/backend=${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/frontend=${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/go-server=${{ env.REGISTRY }}/${{ github.repository }}/go-server:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/rust-engine=${{ env.REGISTRY }}/${{ github.repository }}/rust-engine:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/ml-service=${{ env.REGISTRY }}/${{ github.repository }}/ml-service:${{ env.IMAGE_TAG }} \
+            ghcr.io/phantom-flow/nginx=${{ env.REGISTRY }}/${{ github.repository }}/nginx:${{ env.IMAGE_TAG }}
           kustomize build . | kubectl apply -f -
 
       - name: Verify Deployment

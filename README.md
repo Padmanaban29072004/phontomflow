@@ -1,688 +1,432 @@
-# PHANTOM-Flow: Smart Adaptive Defense System
+# PHANTOM-Flow: Smart Adaptive Defense & SOC Automation Platform
 
-## 🚀 Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/Build-passing-brightgreen.svg)](#)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](#)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](#)
+[![Go](https://img.shields.io/badge/Go-1.25-blue.svg)](#)
+[![Rust](https://img.shields.io/badge/Rust-2021-orange.svg)](#)
 
-PHANTOM-Flow is a next-generation cybersecurity platform that combines multiple threat detection perspectives into a single, powerful defense engine. Unlike traditional security tools, PHANTOM-Flow uses closed-loop learning to continuously improve its threat detection capabilities while maintaining optimal performance for legitimate users.
+PHANTOM-Flow is an enterprise-grade, multi-language cybersecurity platform that integrates **multi-perspective threat detection**, **SOC L1/L2 automation**, **graph-based threat intelligence**, and **closed-loop feedback learning** into a single cohesive defense engine. 
 
-Instead of relying on just one way of spotting threats, it combines multiple perspectives—statistics, user behavior patterns, and relationship graphs—into a single, powerful defense engine. What makes it different is its closed-loop learning process. Every decision the system makes—whether to slow down traffic, challenge a suspicious user, or divert them into a safe decoy—feeds back into its learning model. Over time, it gets better at telling the difference between a real customer and an attacker, making its actions both faster and more accurate.
-
-The deception layer plays a big role in this strategy. Instead of simply blocking suspicious traffic, PHANTOM-Flow can lead attackers into a fake but convincing environment, letting them waste time while the system quietly records their moves. This gives security teams valuable insight into how attacks work—without putting real data at risk.
-
-## 🎯 Backend Features
-
-### 🛡️ **Core Defense Engine**
-
-#### **Threat Detection Engine**
-- **Multi-Perspective Analysis**: Combines behavioral, statistical, and relationship analysis
-- **Machine Learning Integration**: TensorFlow.js neural network for threat classification
-- **Real-Time Assessment**: Sub-second threat evaluation and scoring
-- **Risk Level Classification**: Low, Medium, High, Critical threat categorization
-- **Confidence Scoring**: ML model confidence levels for each assessment
-- **Threat Type Identification**: Automatic classification of threat types
-- **Recommendation Engine**: AI-powered security recommendations
-
-#### **Behavioral Analyzer**
-- **User Behavior Profiling**: Tracks user interaction patterns and session analysis
-- **Session Monitoring**: Real-time session duration and pattern analysis
-- **Interaction Tracking**: Monitors user actions and behavior sequences
-- **Anomaly Detection**: Identifies suspicious behavioral patterns
-- **Risk Scoring**: Calculates behavioral risk scores based on patterns
-- **Pattern Recognition**: Learns normal user behavior patterns
-- **Session Fingerprinting**: Unique session identification and tracking
-
-#### **Statistical Analyzer**
-- **Traffic Pattern Analysis**: Real-time request pattern and frequency monitoring
-- **Baseline Learning**: Establishes and maintains normal traffic patterns
-- **Anomaly Detection**: Identifies statistical deviations from baseline
-- **Performance Metrics**: Tracks system performance and response times
-- **Request Rate Monitoring**: Analyzes request frequency and patterns
-- **Error Rate Analysis**: Monitors and analyzes error patterns
-- **Statistical Modeling**: Advanced statistical models for threat detection
-
-#### **Relationship Analyzer**
-- **Network Graph Analysis**: Maps IP addresses and user relationships
-- **Geographic Clustering**: Groups threats by geographical location
-- **Coordinated Attack Detection**: Identifies multi-source attack campaigns
-- **IP Correlation**: Analyzes relationships between different IP addresses
-- **User Relationship Mapping**: Tracks connections between user accounts
-- **Temporal Analysis**: Time-based relationship pattern analysis
-- **Threat Intelligence Correlation**: Integrates with external threat data
-
-### 🤖 **Machine Learning & AI**
-
-#### **Adaptive Learning Service**
-- **Continuous Model Training**: Automatic model retraining with new data
-- **Performance Monitoring**: Tracks model accuracy, precision, recall, and F1-score
-- **Training Data Management**: Collects and manages training datasets
-- **Model Versioning**: Maintains multiple model versions for comparison
-- **Automatic Retraining**: Scheduled model updates based on performance
-- **Data Quality Assessment**: Validates training data quality
-- **Model Performance Metrics**: Comprehensive ML model evaluation
-
-#### **TensorFlow.js Integration**
-- **Neural Network Models**: Deep learning models for threat classification
-- **Real-Time Inference**: Instant threat assessment using trained models
-- **Model Persistence**: Saves and loads trained models
-- **Feature Engineering**: Automatic feature extraction and processing
-- **Model Optimization**: Continuous model performance optimization
-- **Cross-Platform Support**: Runs on both Node.js and browser environments
-
-### 🎭 **Deception Layer (Honeypots)**
-
-#### **Deception Service**
-- **Honeypot Endpoints**: Creates convincing fake endpoints to trap attackers
-- **Credential Traps**: Fake login credentials to capture attack attempts
-- **Decoy Files**: Fake sensitive files to monitor unauthorized access
-- **Fake Admin Panels**: Convincing admin interfaces for attacker diversion
-- **Attack Recording**: Silent monitoring and recording of attacker behavior
-- **Trap Management**: Dynamic creation and management of deception traps
-- **Threat Intelligence Gathering**: Collects valuable attack pattern data
-
-#### **Deception Features**
-- **Configurable Traps**: Customizable honeypot configurations
-- **Real-Time Monitoring**: Live tracking of deception trap access
-- **Attack Pattern Analysis**: Analyzes attacker behavior patterns
-- **Geographic Tracking**: Maps attacker locations and patterns
-- **Temporal Analysis**: Time-based attack pattern analysis
-- **Threat Level Assessment**: Evaluates threat levels from deception events
-
-### ⚡ **Real-Time Processing**
-
-#### **Socket.IO Integration**
-- **Real-Time Communication**: WebSocket-based live data transmission
-- **Live Threat Alerts**: Instant notification of detected threats
-- **Dashboard Updates**: Real-time dashboard data updates
-- **Event Broadcasting**: Live event broadcasting to connected clients
-- **Room Management**: Organized communication channels
-- **Connection Management**: Robust connection handling and recovery
-
-#### **Performance Optimization**
-- **Zero-Latency Processing**: Minimal impact on application performance
-- **Intelligent Caching**: Redis-based caching for optimal performance
-- **Request Prioritization**: Smart request handling based on threat levels
-- **Resource Optimization**: Efficient resource utilization
-- **Load Balancing**: Intelligent traffic distribution
-- **Response Time Optimization**: Optimized API response times
-
-### 🔒 **Security Features**
-
-#### **Authentication & Authorization**
-- **JWT Token Management**: Secure token-based authentication
-- **Session Management**: Robust session handling and validation
-- **Role-Based Access Control**: Granular permission management
-- **Token Refresh**: Automatic token renewal mechanisms
-- **Secure Password Handling**: Bcrypt-based password security
-- **Multi-Factor Authentication Support**: Extensible MFA framework
-
-#### **Request Protection**
-- **Rate Limiting**: Intelligent rate limiting with configurable thresholds
-- **DDoS Protection**: Advanced DDoS attack detection and mitigation
-- **Input Validation**: Comprehensive request validation and sanitization
-- **CORS Protection**: Cross-origin resource sharing security
-- **Helmet Security**: HTTP security headers implementation
-- **Request Logging**: Comprehensive request logging and monitoring
-
-### 📊 **API Endpoints**
-
-#### **Authentication Routes**
-- `POST /api/auth/login` - User authentication
-- `POST /api/auth/logout` - Session termination
-- `GET /api/auth/verify` - Token validation
-- `GET /api/auth/profile` - User profile management
-
-#### **Threat Management**
-- `GET /api/threats` - List all detected threats
-- `GET /api/threats/:id` - Get specific threat details
-- `POST /api/threats` - Create new threat record
-- `PUT /api/threats/:id` - Update threat information
-- `DELETE /api/threats/:id` - Remove threat record
-- `GET /api/threats/stats/summary` - Threat statistics
-
-#### **Dashboard & Analytics**
-- `GET /api/dashboard/overview` - System overview and summary
-- `GET /api/dashboard/analytics` - Detailed analytics data
-- `GET /api/dashboard/recent-activity` - Recent activity feed
-- `GET /api/dashboard/system-status` - System health status
-
-#### **Deception Layer**
-- `GET /api/deception/events` - Deception event history
-- `GET /api/deception/stats` - Deception statistics
-- `GET /api/deception/traps` - Active deception traps
-- `POST /api/deception/traps` - Create new deception trap
-- `PUT /api/deception/traps/:id` - Update deception trap
-- `DELETE /api/deception/traps/:id` - Remove deception trap
-- `POST /api/deception/trigger` - Manual trap triggering
-
-#### **Metrics & Monitoring**
-- `GET /api/metrics/performance` - System performance metrics
-- `GET /api/metrics/threats` - Threat detection metrics
-- `GET /api/metrics/analytics` - Analytics metrics
-- `GET /api/metrics/ml` - Machine learning metrics
-- `GET /api/metrics/real-time` - Real-time system metrics
-- `POST /api/metrics/export` - Export metrics data
-
-#### **System Health**
-- `GET /health` - Server health check and status
-
-### 🗄️ **Data Management**
-
-#### **Database Service**
-- **MongoDB Integration**: Robust document database for data persistence
-- **Connection Management**: Intelligent database connection handling
-- **Health Monitoring**: Database health and performance monitoring
-- **Data Validation**: Comprehensive data validation and integrity checks
-- **Backup Support**: Database backup and recovery capabilities
-- **Query Optimization**: Optimized database queries for performance
-
-#### **Redis Service**
-- **Caching Layer**: High-performance caching for frequently accessed data
-- **Session Storage**: Secure session data storage
-- **Real-Time Data**: Fast access to real-time system data
-- **Data Persistence**: Persistent storage with TTL support
-- **Memory Optimization**: Efficient memory usage and management
-- **Connection Pooling**: Optimized connection management
-
-### 📈 **Monitoring & Analytics**
-
-#### **Comprehensive Logging**
-- **Structured Logging**: Winston-based structured logging system
-- **Log Levels**: Configurable log levels (debug, info, warn, error)
-- **Log Rotation**: Automatic log rotation and management
-- **Performance Logging**: Detailed performance metrics logging
-- **Security Logging**: Comprehensive security event logging
-- **Audit Trails**: Complete audit trail for all system activities
-
-#### **Real-Time Monitoring**
-- **System Metrics**: CPU, memory, disk, and network monitoring
-- **Application Metrics**: Response times, throughput, error rates
-- **Threat Metrics**: Threat detection accuracy and performance
-- **ML Model Metrics**: Machine learning model performance tracking
-- **Custom Metrics**: User-defined custom metrics support
-
-### 🔧 **Development & Operations**
-
-#### **Development Features**
-- **TypeScript Support**: Full TypeScript implementation for type safety
-- **Hot Reloading**: Development server with automatic reloading
-- **Environment Configuration**: Flexible environment-based configuration
-- **Error Handling**: Comprehensive error handling and recovery
-- **Debugging Support**: Advanced debugging and logging capabilities
-- **Testing Framework**: Built-in testing framework support
-
-#### **Production Features**
-- **Process Management**: PM2-based process management
-- **Load Balancing**: Built-in load balancing capabilities
-- **Health Checks**: Comprehensive health check endpoints
-- **Graceful Shutdown**: Proper application shutdown handling
-- **Performance Monitoring**: Production performance monitoring
-- **Security Hardening**: Production-ready security configurations
-
-## 🏗️ System Architecture
-
-```
-PHANTOM-Flow/
-├── backend/                        # Core TypeScript/Node.js engine
-│   ├── src/
-│   │   ├── core/                  # Threat detection algorithms
-│   │   │   ├── ThreatDetectionEngine.ts
-│   │   │   ├── BehavioralAnalyzer.ts
-│   │   │   ├── StatisticalAnalyzer.ts
-│   │   │   └── RelationshipAnalyzer.ts
-│   │   ├── services/              # Business logic services
-│   │   ├── api/                   # REST API endpoints & HTML interfaces
-│   │   ├── models/                # Data models
-│   │   └── utils/                 # Utility functions
-│   ├── package.json
-│   └── tsconfig.json
-├── ml_models/                      # Python ML & AI modules
-│   └── threat_detection_model.py   # Advanced ML threat detection
-├── data_analysis/                  # Python forensics & analytics
-│   └── network_forensics.py        # Network traffic analysis
-├── security_tools/                 # Python security testing
-│   └── penetration_testing.py      # Automated pentesting framework
-├── blockchain_security/            # Python blockchain security
-│   └── smart_contract_auditor.py   # Smart contract auditing
-├── frontend/                       # React web dashboard
-│   ├── src/
-│   │   ├── components/            # React components
-│   │   ├── pages/                 # Dashboard pages
-│   │   ├── services/              # API integration
-│   │   └── contexts/              # React contexts
-│   └── package.json
-├── go.mod                          # Go module configuration
-├── Cargo.toml                      # Rust package configuration
-├── requirements.txt                # Python dependencies
-├── .gitattributes                  # Language detection control
-└── README.md
-```
-
-## 🛠️ Technology Stack
-
-### Core Backend (TypeScript/Node.js)
-- **Node.js** with Express.js
-- **TypeScript** for type safety
-- **MongoDB** for data persistence
-- **Redis** for caching and session management
-- **TensorFlow.js** for ML models
-- **Socket.io** for real-time communication
-
-### Advanced Security Modules (Python)
-- **Machine Learning**: Advanced threat detection models using TensorFlow, scikit-learn
-- **Network Forensics**: Comprehensive network traffic analysis and threat hunting
-- **Penetration Testing**: Automated vulnerability scanning and security testing
-- **Blockchain Security**: Smart contract auditing and DeFi security analysis
-
-### High-Performance Components (Go & Rust)
-- **Go Services**: High-throughput security APIs and microservices
-- **Rust Engine**: Performance-critical security processing and cryptographic operations
-
-### Frontend
-- **React** with TypeScript
-- **Tailwind CSS** for styling
-- **Chart.js** for data visualization
-- **React Query** for state management
-
-### Security & Monitoring
-- **JWT** for authentication
-- **Rate limiting** and DDoS protection
-- **Request validation** and sanitization
-- **Comprehensive logging** and monitoring
-
-## 📋 Prerequisites
-
-### Core Requirements
-- **Node.js** (v18 or higher)
-- **npm** or **yarn**
-- **MongoDB** (v6 or higher) - Optional for development
-- **Redis** (v6 or higher) - Optional for development
-- **Git**
-
-### Optional (for full multi-language features)
-- **Python** (v3.8 or higher) - For advanced ML and security modules
-- **Go** (v1.19 or higher) - For high-performance services
-- **Rust** (v1.70 or higher) - For performance-critical components
-
-> **Note**: The core TypeScript backend runs independently. Python, Go, and Rust components are additional security modules that enhance functionality but are not required for basic operation.
-
-### Installing Prerequisites
-
-#### Core Dependencies (Required)
-```bash
-# Node.js - Download from https://nodejs.org/
-# MongoDB - Download from https://www.mongodb.com/try/download/community (Optional)
-# Redis - See Redis installation guide above (Optional)
-```
-
-#### Multi-Language Components (Optional)
-```bash
-# Python (for ML and security modules)
-# Download from https://python.org/ or use package manager
-
-# Go (for high-performance services)
-# Download from https://golang.org/
-
-# Rust (for performance-critical components)  
-# Download from https://rustup.rs/
-```
-
-> **Quick Start**: You can run the core system with just Node.js! MongoDB and Redis are optional for development, and the multi-language components are additional features.
-
-## 🚀 Quick Start
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd phantom-flow
-```
-
-### 2. Install Core Dependencies
-```bash
-# Install backend dependencies (Required)
-cd backend
-npm install
-
-# Install frontend dependencies (Optional - for web dashboard)
-cd ../frontend
-npm install
-```
-
-### 3. Install Multi-Language Dependencies (Optional)
-```bash
-# Python dependencies (for ML and security modules)
-pip install -r requirements.txt
-
-# Go dependencies (for high-performance services)
-go mod tidy
-
-# Rust dependencies (for performance-critical components)
-cargo build --release
-```
-
-### 4. Environment Configuration
-
-#### Backend Environment
-```bash
-cd ../backend
-cp env.example .env
-```
-
-Edit the `.env` file with your configuration:
-```env
-# Server Configuration
-NODE_ENV=development
-PORT=3001
-HOST=localhost
-
-# Database Configuration
-MONGODB_URI=mongodb://localhost:27017/phantom-flow
-REDIS_URL=redis://localhost:6379
-
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-JWT_EXPIRES_IN=24h
-
-# Security Configuration
-BCRYPT_ROUNDS=12
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# External APIs (Optional)
-THREAT_INTELLIGENCE_API_KEY=your-threat-intelligence-api-key
-GEOIP_API_KEY=your-geoip-api-key
-
-# Logging
-LOG_LEVEL=info
-LOG_FILE_PATH=./logs/phantom-flow.log
-
-# ML Model Configuration
-MODEL_UPDATE_INTERVAL=3600000
-ANOMALY_DETECTION_THRESHOLD=0.8
-BEHAVIOR_ANALYSIS_WINDOW=300000
-
-# Deception Layer
-HONEYPOT_ENABLED=true
-DECEPTION_LEVEL=medium
-ATTACK_RECORDING_ENABLED=true
-
-# Performance Monitoring
-METRICS_ENABLED=true
-PERFORMANCE_MONITORING_INTERVAL=60000
-```
-
-#### Frontend Environment
-```bash
-cd ../frontend
-cp .env.example .env
-```
-
-Edit the `.env` file:
-```env
-REACT_APP_API_URL=http://localhost:3001
-REACT_APP_SOCKET_URL=http://localhost:3001
-REACT_APP_ENVIRONMENT=development
-```
-
-### 5. Database Setup (Optional)
-
-> **Note**: The backend can run without databases in development mode!
-
-#### Start MongoDB (Optional)
-```bash
-# Start MongoDB service (if installed)
-sudo systemctl start mongod
-# or on macOS
-brew services start mongodb-community
-```
-
-#### Start Redis (Optional)
-```bash
-# Start Redis service (if installed)
-sudo systemctl start redis
-# or on macOS
-brew services start redis
-```
-
-### 6. Build and Run
-
-#### Development Mode
-```bash
-# Start backend (from backend directory)
-cd backend
-npm run dev
-
-# Start frontend (from frontend directory)
-cd ../frontend
-npm start
-```
-
-**Access Points:**
-- **Backend API**: http://localhost:3001
-- **Dashboard**: http://localhost:3001/api/dashboard  
-- **API Documentation**: http://localhost:3001/api/docs
-- **Frontend** (if running): http://localhost:3000
-
-#### Production Mode
-```bash
-# Build for production
-cd backend
-npm run build
-
-cd ../frontend
-npm run build
-
-# Start production server
-cd ../backend
-npm start
-```
-
-## 🔧 Core Components
-
-### 1. Core Backend Engine (TypeScript/Node.js)
-- **Threat Detection Engine**: Multi-perspective analysis with ML integration
-- **Behavioral Analyzer**: User behavior profiling and anomaly detection  
-- **Statistical Analyzer**: Traffic pattern analysis and baseline learning
-- **Relationship Analyzer**: Network graph analysis and threat correlation
-- **Deception Framework**: Honeypot environments and attack recording
-
-### 2. Advanced ML Modules (Python)
-- **Advanced Threat Detection**: TensorFlow/scikit-learn models for complex threat classification
-- **Network Forensics**: Comprehensive traffic analysis and threat hunting capabilities
-- **Penetration Testing**: Automated vulnerability scanning and security assessment
-- **Blockchain Security**: Smart contract auditing and DeFi security analysis
-
-### 3. High-Performance Services (Go & Rust)
-- **Go Security APIs**: High-throughput security microservices and threat analysis
-- **Rust Performance Engine**: Cryptographic operations and performance-critical processing
-
-### 4. Multi-Language Integration
-- **Isolated Architecture**: Each language component operates independently
-- **API-Based Communication**: Clean interfaces between different technology stacks  
-- **Modular Design**: Components can be enabled/disabled based on requirements
-- **GitHub Language Optimization**: Strategic language detection for portfolio presentation
-
-## 🔒 Security Features
-
-### Authentication & Authorization
-- JWT-based authentication
-- Role-based access control
-- Session management
-- Secure password handling
-
-### Rate Limiting & DDoS Protection
-- Intelligent rate limiting
-- DDoS attack detection
-- Request prioritization
-- Resource allocation optimization
-
-### Data Protection
-- Request validation and sanitization
-- Input/output filtering
-- Secure data transmission
-- Privacy compliance
-
-## 📈 Monitoring & Analytics
-
-### Real-Time Dashboard
-- Live threat monitoring
-- System performance metrics
-- Geographic threat visualization
-- Attack pattern analysis
-
-### Performance Metrics
-- Response time monitoring
-- Throughput analysis
-- Error rate tracking
-- Resource utilization
-
-### Threat Intelligence
-- Attack pattern correlation
-- Geographic threat mapping
-- Temporal analysis
-- Risk assessment scoring
-
-## 🛠️ Configuration Options
-
-### Threat Detection Sensitivity
-```env
-ANOMALY_DETECTION_THRESHOLD=0.8
-BEHAVIOR_ANALYSIS_WINDOW=300000
-```
-
-### Performance Tuning
-```env
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-PERFORMANCE_MONITORING_INTERVAL=60000
-```
-
-### Deception Settings
-```env
-HONEYPOT_ENABLED=true
-DECEPTION_LEVEL=medium
-ATTACK_RECORDING_ENABLED=true
-```
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-#### Backend Won't Start
-1. Check if MongoDB is running
-2. Verify Redis connection
-3. Check environment variables
-4. Review log files
-
-#### Frontend Connection Issues
-1. Verify backend is running on correct port
-2. Check CORS configuration
-3. Verify API endpoints
-4. Check browser console for errors
-
-#### Database Connection Issues
-1. Verify MongoDB service is running
-2. Check connection string
-3. Verify database permissions
-4. Check network connectivity
-
-### Log Files
-- Backend logs: `backend/logs/`
-- Error logs: `backend/logs/error.log`
-- Combined logs: `backend/logs/combined.log`
-
-### Performance Optimization
-1. Monitor system resources
-2. Adjust rate limiting settings
-3. Optimize database queries
-4. Tune ML model parameters
-
-## 📚 API Documentation
-
-### Authentication Endpoints
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `GET /api/auth/profile` - Get user profile
-
-### Threat Detection Endpoints
-- `GET /api/threats/recent` - Get recent threats
-- `GET /api/threats/statistics` - Get threat statistics
-- `POST /api/threats/analyze` - Analyze specific request
-
-### Dashboard Endpoints
-- `GET /api/dashboard/metrics` - Get dashboard metrics
-- `GET /api/dashboard/status` - Get system status
-- `GET /api/dashboard/alerts` - Get system alerts
-
-### Deception Endpoints
-- `POST /api/deception/create` - Create deception environment
-- `GET /api/deception/events` - Get deception events
-- `POST /api/deception/record` - Record attack behavior
-
-The API documentation is also available at `/api/docs` when the server is running.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Review the troubleshooting guide
-- Contact the development team
-
-For security issues, please email security@phantom-flow.com instead of using the issue tracker.
-
-## 🌐 Multi-Language Architecture
-
-### Comprehensive Security Platform
-
-PHANTOM-Flow is built as a true multi-language cybersecurity platform, leveraging the strengths of different programming languages for optimal performance and functionality:
-
-#### **Core Application (TypeScript/Node.js) - 54.6%**
-- **Primary Runtime**: Main application server and API endpoints
-- **Frontend Interface**: React-based web dashboard and management interface
-- **Business Logic**: Core threat detection algorithms and security orchestration
-- **Real-time Processing**: WebSocket-based live threat monitoring and alerts
-
-#### **Advanced Analytics (Python) - 20.4%**
-- **Machine Learning**: TensorFlow/scikit-learn models for threat classification
-- **Data Analysis**: Network forensics and behavioral analysis engines
-- **AI Intelligence**: Advanced threat intelligence processing and correlation
-- **Security Testing**: Automated penetration testing and vulnerability assessment
-- **Quantum Security**: Post-quantum cryptography and quantum threat analysis
-
-#### **Backend Services (Go) - 6.7%**
-- **High-Performance APIs**: Concurrent security microservices
-- **Network Monitoring**: Real-time packet analysis and threat detection
-- **Threat Analysis**: Fast pattern matching and signature-based detection
-
-#### **Performance Engine (Rust) - 7.1%**
-- **Cryptographic Operations**: High-speed encryption and hashing
-- **Performance-Critical Processing**: Memory-safe, zero-cost abstractions
-- **Security Engine**: Low-level security operations and optimizations
-
-#### **Web Technologies (JavaScript) - 11.2%**
-- **Frontend Logic**: Client-side security dashboard functionality
-- **API Integration**: Real-time data visualization and user interactions
-
-#### **Architecture Benefits**
-- ✅ **Language-Specific Optimization**: Each language used for its strengths
-- ✅ **Modular Design**: Independent components with clear interfaces
-- ✅ **Scalable Performance**: High-performance components where needed
-- ✅ **Comprehensive Security**: Full-spectrum cybersecurity capabilities
-- ✅ **Production Ready**: All components designed for enterprise deployment
+By fusing statistics, behavioral sequences, relationship topologies, payload heuristics, and active deception, PHANTOM-Flow protects modern web infrastructures while dynamically minimizing false positives via contextual reinforcement learning.
 
 ---
 
-**PHANTOM-Flow**: Turning cybersecurity from reactive catch-up into proactive, intelligence-driven defense.
+## Table of Contents
 
-*A comprehensive multi-language cybersecurity platform combining TypeScript/Node.js core services with Python ML analytics, Go microservices, and Rust performance engines.*
+- [Architecture Diagrams](#architecture-diagrams)
+- [System Capabilities & Algorithmic Core](#system-capabilities--algorithmic-core)
+- [Specialized Security Modules (Python)](#specialized-security-modules-python)
+- [Go & Rust Security Engines](#go--rust-security-engines)
+- [Project Structure](#project-structure)
+- [SOC Automation & Playbooks](#soc-automation--playbooks)
+- [Default Login Credentials](#default-login-credentials)
+- [API Reference](#api-reference)
+- [Configuration Guide](#configuration-guide)
+- [Quick Start & Running Guide](#quick-start--running-guide)
+- [Troubleshooting](#troubleshooting)
+- [Contributing & License](#contributing--license)
+
+---
+
+## Architecture Diagrams
+
+### Closed-Loop Defense Cycle
+```mermaid
+flowchart LR
+    A[Observe\nLogs & Traffic] --> B[Analyze\n5 Detection Engines]
+    B --> C[Decide\nRisk + Triage]
+    C --> D[Respond\nSOAR Playbooks]
+    D --> E[Learn\nBandit Rewards]
+    E --> A
+```
+
+### End-to-End SOC Automation Pipeline
+```mermaid
+flowchart TB
+    subgraph Ingest["Phase 1 — Ingestion"]
+        SRC[SIEM / EDR / Cloud / Network]
+        LS[Logstash / Filebeat]
+        KF[Kafka]
+        NORM[Normaliser + Enrichment]
+        SRC --> LS --> KF --> NORM
+    end
+
+    subgraph L1["Phase 2–3 — L1 Triage & SOAR"]
+        DET[Sigma · YARA · Heuristics · Analyzers]
+        TRI[Triage Engine\nclose · auto-respond · escalate]
+        SOAR[Playbook Executor]
+        ACT[Firewall · EDR · IAM · Notify]
+        NORM --> DET --> TRI
+        TRI -->|auto-respond| SOAR --> ACT
+    end
+
+    subgraph L2["Phase 4 — L2 Investigation"]
+        ESC[Escalated Alerts]
+        AG[LangGraph L2 Agent]
+        CTX[Context] --> TTP[TTP Mapper]
+        TTP --> TL[Timeline]
+        TL --> RSK[Risk Scorer]
+        RSK --> RPT[Incident Report]
+        TRI -->|escalate| ESC --> AG
+        AG --> CTX
+    end
+
+    subgraph Intel["Phase 5 — Graph Intelligence"]
+        NEO[(Neo4j)]
+        KC[Kill Chain · Lateral Movement]
+        NORM --> NEO
+        NEO --> KC
+        KC --> DET
+    end
+
+    subgraph Learn["Phase 6 — Adaptive Learning"]
+        BND[Thompson Sampling Bandit]
+        ACT --> BND
+        BND --> SOAR
+    end
+```
+
+### Runtime Deployment (Docker Compose)
+```mermaid
+flowchart TB
+    subgraph Edge["Edge"]
+        NG[Nginx :80 / :443]
+        FE[Frontend :3000]
+    end
+
+    subgraph App["Application"]
+        BE[Backend API :3001]
+        GO[Go Server :8080]
+        RS[Rust Engine :9090]
+        ML[ML / L2 Service :8000]
+    end
+
+    subgraph Data["Data Layer"]
+        MG[(MongoDB)]
+        RD[(Redis)]
+        IFX[(InfluxDB)]
+        N4J[(Neo4j)]
+        KF[Kafka + Zookeeper]
+    end
+
+    NG --> FE
+    NG --> BE
+    FE --> BE
+    BE --> MG
+    BE --> RD
+    BE --> IFX
+    BE --> N4J
+    BE --> KF
+    BE --> ML
+    BE --> GO
+    BE --> RS
+```
+
+### L2 Investigation Agent Graph
+```mermaid
+flowchart LR
+    IN[Alert Payload] --> CTX[Context Agent]
+    CTX --> TTP[ATT&CK TTP Agent]
+    TTP --> TL[Timeline Agent]
+    TL --> RSK[Risk Agent]
+    RSK --> RPT[Report Agent]
+    RPT --> OUT[Investigation Report]
+    CTX -.-> TH[TheHive Connector]
+```
+
+### Detection Engine Fusion
+```mermaid
+flowchart TB
+    REQ[Inbound Request / Event] --> BA[Behavioral Analyzer]
+    REQ --> SA[Statistical Analyzer]
+    REQ --> RA[Relationship Analyzer]
+    REQ --> PH[Payload Heuristics]
+    REQ --> SIG[Sigma / YARA]
+    BA --> RS[Risk Scoring Engine]
+    SA --> RS
+    RA --> RS
+    PH --> RS
+    SIG --> RS
+    RS --> RL{Response Level}
+    RL -->|low| MON[Monitor]
+    RL -->|medium| RLIM[Rate Limit]
+    RL -->|high| CHL[Challenge / Honeypot]
+    RL -->|critical| BLK[Block]
+```
+
+---
+
+## System Capabilities & Algorithmic Core
+
+PHANTOM-Flow integrates several advanced data structures and machine learning algorithms directly into its stream-processing core to perform near-zero latency threat detection and adaptive responses:
+
+| Algorithm / Component | Purpose | Target / Implementation Path |
+|---|---|---|
+| **Count-Min Sketch** | Memory-efficient cardinality and sub-second frequency estimation for rate/error spikes. | `backend/src/core/sketch/` (Redis backed) |
+| **HyperLogLog (HLL)** | Cardinality estimation for tracking unique visitor metrics, IP counts, and geo-spikes. | `backend/src/core/hyperloglog/` (Redis backed) |
+| **Markov Chain Sequences** | N-order behavioral state flow sequence modeling to detect anomalous navigation paths. | `backend/src/core/markov/` (Redis backed) |
+| **Advanced EWMA** | Multi-window Exponentially Weighted Moving Average for baseline tracking & concept drift detection. | `backend/src/core/ewma/` |
+| **Adaptive Rate Limiting** | Dynamic policy engine backing token-bucket & sliding-window rate limiters based on risk scores. | `backend/src/core/rateLimit/` |
+| **Thompson Sampling MAB** | Multi-Armed Bandit framework selecting defense actions (Allow, Block, Challenge) based on feedback rewards. | `backend/src/core/bandit/` |
+| **TensorFlow.js (AI Core)** | Real-time neural network threat scoring model integrated into the TypeScript backend. | `backend/src/core/ThreatDetectionEngine.ts` |
+
+---
+
+## Specialized Security Modules (Python)
+
+PHANTOM-Flow features dedicated Python security modules that enable advanced analysis, post-quantum compliance, and penetration testing simulations:
+
+### 1. Post-Quantum Cryptography & Threat Simulator (`quantum_security/`)
+- **Quantum Attack Simulation**: Assesses the threat levels of classic cryptographic suites against Shor's and Grover's algorithms.
+- **Key Generation**: Simulates post-quantum public-key exchange and signatures (Lattice-based KEM like CRYSTALS-Kyber, Code-based Classic McEliece, Multivariate, Hash-based signatures, and Isogeny-based keys).
+- **Location**: `quantum_security/quantum_cryptography.py`
+
+### 2. DeFi & Smart Contract Security Auditor (`blockchain_security/`)
+- **Static Analysis**: Detects critical Solidity vulnerability patterns, including Reentrancy, Integer Overflow/Underflow, Access Control failures, Weak Randomness, and Timestamp dependency.
+- **DeFi Guardrails**: Inspects flash loan integrations, Oracle manipulation vectors (e.g. price feeds, lack of TWAP validation), and governance delay (timelock) validations.
+- **Gas Auditing**: Analyzes gas-inefficient patterns and estimates savings (e.g. loop length caching, memory vs storage optimization).
+- **Location**: `blockchain_security/smart_contract_auditor.py`
+
+### 3. Penetration Testing Framework (`security_tools/`)
+- **Port Scanner**: Multithreaded TCP SYN and UDP port scanner utilizing raw sockets and Nmap bindings.
+- **Service Enumeration**: Identifies target banners, version detection, anonymous FTP checks, and weak SSH cipher analysis.
+- **Web Vuln Scanner**: Automated scans for SQL Injection (SQLi), Cross-Site Scripting (XSS), Command Injection (CMDi), SSL/TLS vulnerabilities, and directory enumeration.
+- **Location**: `security_tools/penetration_testing.py`
+
+---
+
+## Go & Rust Security Engines
+
+For performance-critical processing, PHANTOM-Flow offloads compute-heavy tasks to Go and Rust subsystems:
+
+### Rust Security Engine (`src/` / `Cargo.toml`)
+- **Role**: High-performance packet capture and security filtering layer.
+- **Capabilities**:
+  - Raw packet sniffing utilizing `pcap` / `pnet`.
+  - gRPC service using `tonic` / `prost` to communicate with the Node.js orchestrator.
+  - Native machine learning inferences utilizing `candle-core` (Rust-native tensor framework) and PyTorch (`tch-rs`).
+  - Kafka consumer/producer bindings using `rdkafka`.
+- **Location**: Rust files are situated in the root directory (`src/`, `Cargo.toml`, `build.rs`).
+
+### Go Microservices (`cmd/` / `go.mod`)
+- **Role**: Concurrent log aggregation and high-speed scanner agents.
+- **Sub-Services**:
+  - `security-server` (`cmd/security-server/`): A high-concurrency event gateway implementing gRPC and WebSocket APIs, persistent configuration caching, and Kafka log producer routing.
+  - `log-analyzer` (`cmd/log-analyzer/`): High-speed regex parser engine that reads raw system/web logs and transforms them into normalized Kafka alerts.
+  - `threat-scanner` (`cmd/threat-scanner/`): Rapid IP/CIDR threat intelligence reputation checker.
+- **Location**: Go services reside in `cmd/`, common code in `internal/`, and module definitions in `go.mod` / `go.sum`.
+
+---
+
+## Project Structure
+
+```
+phontomflow/
+├── backend/                         # Node.js/TypeScript Core REST API & Triage orchestrator
+│   ├── src/
+│   │   ├── core/                    # ThreatDetectionEngine, EWMA, Markov, HLL, Count-Min, MAB
+│   │   ├── api/routes/              # Express REST endpoints
+│   │   └── services/                # Redis, Deception, Metrics, Socket.IO
+│   ├── ingestion/                   # Ingestion pipeline, Kafka consumer, normalizer, enrichers
+│   ├── detection/                   # Sigma parser, YARA rules, Payload Heuristics
+│   ├── triage/                      # Whitelist suppression, decisionEngine (close/auto-respond/escalate)
+│   ├── soar/                        # Playbook schema, executor, and actions (firewall, EDR, IAM, notify)
+│   ├── db/                          # Neo4j and MongoDB driver connections
+│   ├── graph/                       # Kill chain and lateral movement Cypher queries
+│   └── bandit/                      # Thompson sampling MAB framework
+├── frontend/                        # React + Vite + Tailwind CSS SOC Dashboard
+│   ├── src/
+│   │   ├── pages/                   # Analytics, Dashboard, Deception, Graph, Setup, Threats
+│   │   ├── components/              # Layout, Graph visuals, auth context, bandit performance
+│   │   └── services/                # API client connection services
+├── services/l2-agent/               # Python LangGraph L2 Investigation Microservice
+├── ml_service/                      # Python FastAPI TensorFlow ML Classification Service
+├── quantum_security/                # Post-Quantum Cryptography & Quantum Threat Simulation Module
+├── blockchain_security/             # DeFi & Solidity Smart Contract Auditing Platform
+├── security_tools/                  # Network & Web Application Penetration Testing Framework
+├── k8s/                             # Kubernetes deployment manifests
+├── docker-compose.yml               # Full stack orchestration compose file
+├── Cargo.toml                       # Rust workspace and dependency configuration
+├── go.mod                           # Go workspace and module definition
+├── package.json                     # Root NPM workspace definitions
+└── claude.md                        # SOC build plan (Phases 1–6, T1–T48)
+```
+
+---
+
+## SOC Automation & Playbooks
+
+PHANTOM-Flow operates a graduated triage and defense flow:
+1. **L1 Triage**: Incoming normalized logs are analyzed by the 5 detection engines. The `decisionEngine.ts` decides whether to **Close** the alert (false positive), **Auto-Respond** (executes SOAR playbooks), or **Escalate** (sends to Python L2 agent).
+2. **SOAR Playbooks**: When playbooks trigger, the `executor.ts` runs ordered JSON recipes:
+   - `port_scan_response`: Escalates rate limits and adds temporary firewall blocks.
+   - `brute_force_response`: Forces credential lockouts and resets accounts.
+   - `data_exfil_response`: Isolates affected hosts using EDR quarantines.
+   - `malware_hash_block`: Updates host and network blacklists.
+   - `honeypot_trigger_response`: Diverts attacker sessions to decoy traps.
+
+---
+
+## Default Login Credentials
+
+> [!WARNING]
+> **Development configuration only.** Change all passwords before deploying to a public network.
+
+### SOC Web Dashboard
+- **URL**: `http://localhost:3000`
+- **Analyst Login**: `soc-analyst` / `PhantomFlow@2025`
+- **Admin Login**: `admin` / `admin`
+
+### Database & Message Queue defaults
+- **Neo4j Browser**: `http://localhost:7474` (`neo4j` / `dev-password-123`)
+- **MongoDB**: `mongodb://localhost:27017` (`admin` / `dev-password-456`)
+- **InfluxDB**: `http://localhost:8086` (`admin` / `dev-password-456`, token: `dev-token-789`)
+- **Kafka**: `localhost:9092`
+
+---
+
+## API Reference
+
+### Authentication
+- `POST /api/auth/login` - User authentication and JWT distribution.
+- `GET /api/auth/verify` - Token validation and routing auth.
+
+### Threats & Dashboard
+- `GET /api/threats` - Retrieves threat logs and ongoing alerts.
+- `GET /api/dashboard/overview` - Fetches live risk score, active threats, and honeypot events.
+- `GET /api/dashboard/analytics` - Pulls historical time-series analytics.
+
+### Triage & SOAR
+- `POST /api/playbooks/:id/trigger` - Manually executes a SOAR playbook.
+- `POST /api/l2/investigate` - Forwards threat payloads to the Python LangGraph L2 agent.
+- `GET /api/graph/killchain` - Cypher queries to extract graph-based threat topologies from Neo4j.
+
+---
+
+## Configuration Guide
+
+Configure each subsystem by copying environment files:
+
+### Backend Configuration (`backend/.env`)
+```env
+NODE_ENV=development
+PORT=3001
+MONGODB_URI=mongodb://localhost:27017/phantom-flow
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your-super-secret-jwt-key-change-in-production
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=dev-password-123
+KAFKA_BROKERS=localhost:9092
+L2_AGENT_URL=http://127.0.0.1:8000
+HONEYPOT_ENABLED=true
+```
+
+### Frontend Configuration (`frontend/.env`)
+```env
+VITE_API_URL=http://localhost:3001
+```
+
+---
+
+## Quick Start & Running Guide
+
+### Option A — Full Stack Deploy (Docker Compose)
+To launch all services, databases, and message queues:
+```bash
+docker compose up -d
+```
+
+### Option B — Run Services Separately (Local Dev)
+
+#### 1. Core Web Stack (Node & React)
+```bash
+# Start Backend Orchestrator
+cd backend
+npm install
+npm run dev # Launches API server on port 3001
+
+# Start React Frontend (in a new shell)
+cd ../frontend
+npm install
+npm run dev # Launches Web UI on port 3000
+```
+
+#### 2. LangGraph L2 Agent (Python)
+Ensure Python 3.10+ is installed:
+```bash
+cd services/l2-agent
+pip install fastapi uvicorn httpx langgraph langchain-openai
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+#### 3. Python ML Inference Service (`ml_service`)
+```bash
+cd ml_service
+pip install -r requirements.txt
+python run.py # Launches FastAPI on port 8000 (configurable via PORT env)
+```
+
+#### 4. Rust Security Engine (`src/`)
+Requires Rust and Cargo installed:
+```bash
+# Build and run the security engine with all features enabled
+cargo run --features "full"
+```
+
+#### 5. Go Microservices (`cmd/`)
+Requires Go 1.25 installed:
+```bash
+# Run the main security and WebSocket gateway server
+go run cmd/security-server/main.go cmd/security-server/kafka.go cmd/security-server/grpc.go
+
+# Run the high-speed log aggregation/analysis client
+go run cmd/log-analyzer/main.go
+
+# Run the reputation threat intelligence scanner
+go run cmd/threat-scanner/main.go
+```
+
+#### 6. Specialized Python Tools
+To test or execute the standalone auditing and scanning tools:
+```bash
+# Run Post-Quantum Cryptography & Threat assessment simulator
+python quantum_security/quantum_cryptography.py
+
+# Run DeFi Smart Contract Solidity Auditor
+python blockchain_security/smart_contract_auditor.py
+
+# Run Pentest and Vulnerability scanner
+python security_tools/penetration_testing.py
+```
+
+---
+
+## Troubleshooting
+
+- **gRPC connection errors**: Ensure the Go Server (`:8080`) or Rust Engine (`:9090`) are listening, and check that firewall ports are configured properly.
+- **Neo4j connection errors**: Verify Neo4j status by accessing `http://localhost:7474`. Make sure bolt authentication matches your `NEO4J_PASSWORD` in `backend/.env`.
+- **Kafka connection drops**: The Node.js and Go microservices will continue running if Kafka is temporarily unreachable. Verify docker containers are active: `docker compose ps`.
+
+---
+
+## Contributing & License
+
+1. Fork the repository.
+2. Develop features in a separate branch.
+3. Validate and run test suites:
+   ```bash
+   cd backend && npm test
+   pytest tests/
+   ```
+4. Open a pull request.
+
+**License**: MIT — see [LICENSE](LICENSE)
+
+**Security issues**: Email security@phantom-flow.com (please do not open public GitHub issues).
+
+---
+
+**PHANTOM-Flow** — Turning reactive cybersecurity into dynamic, intelligence-driven, automated defense.

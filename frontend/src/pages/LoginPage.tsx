@@ -1,14 +1,26 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { DEFAULT_APP_ROUTE } from '../config/routes'
 import toast from 'react-hot-toast'
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, isAuthenticated, targetUrl } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (targetUrl) {
+        navigate(DEFAULT_APP_ROUTE, { replace: true })
+      } else {
+        navigate('/setup', { replace: true })
+      }
+    }
+  }, [isAuthenticated, targetUrl, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,7 +31,15 @@ export function LoginPage() {
     setLoading(true)
     try {
       await login(username, password)
-      navigate('/dashboard')
+      const hasTarget = !!sessionStorage.getItem('target_url')
+      if (hasTarget) {
+        const from =
+          (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ??
+          DEFAULT_APP_ROUTE
+        navigate(from, { replace: true })
+      } else {
+        navigate('/setup', { replace: true })
+      }
     } catch {
       toast.error('Login failed. Please check your credentials.')
     } finally {
