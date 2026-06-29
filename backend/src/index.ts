@@ -1,4 +1,4 @@
-import express, { Router } from 'express';
+﻿import express, { Router } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -11,7 +11,7 @@ import { RedisService } from '@/services/RedisService';
 import { ThreatDetectionEngine } from '@/core/ThreatDetectionEngine';
 import { DeceptionService, DeceptionConfig } from '@/services/DeceptionService';
 import { AdaptiveLearningService, LearningConfig } from '@/services/AdaptiveLearningService';
-import { authRoutes } from '@/api/routes/auth';
+import { authRoutes, initAuthRoutes } from '@/api/routes/auth';
 import { threatRoutes } from '@/api/routes/threats';
 import { dashboardRoutes } from '@/api/routes/dashboard';
 import { createDeceptionRouter } from '@/api/routes/deception';
@@ -324,7 +324,7 @@ class PhantomFlowServer {
 
     // Mount graph routes
     this.app.use('/api/graph', this.graphRoutes);
-    logger.info('📊 Graph API routes mounted at /api/graph');
+    logger.info('ðŸ“Š Graph API routes mounted at /api/graph');
 
     // 404 handler set up in start() after all routes mounted
   }
@@ -420,7 +420,7 @@ class PhantomFlowServer {
 
     this.banditRoutes = createBanditRouter(this.adaptiveDecisionEngine, this.feedbackCollector);
     this.app.use('/api/bandit', this.banditRoutes);
-    logger.info('🎰 Bandit API routes mounted at /api/bandit');
+    logger.info('ðŸŽ° Bandit API routes mounted at /api/bandit');
 
     this.app.use('/api/deception', createDeceptionRouter(this.deceptionService));
     logger.info('Deception API routes mounted at /api/deception');
@@ -434,7 +434,7 @@ class PhantomFlowServer {
     try {
       await this.kafkaBus.connect();
     } catch (error) {
-      logger.warn('Kafka unavailable — continuing without event bus in current environment');
+      logger.warn('Kafka unavailable â€” continuing without event bus in current environment');
       this.kafkaBus = undefined;
     }
 
@@ -487,7 +487,7 @@ class PhantomFlowServer {
   }
 
   /**
-   * Initialize graph routes (lazy — called after Neo4j connection attempt)
+   * Initialize graph routes (lazy â€” called after Neo4j connection attempt)
    */
   private initializeGraphRoutes(): void {
     this.graphRoutes = createGraphRouter(this.neo4jService);
@@ -516,41 +516,47 @@ class PhantomFlowServer {
             connectTimeoutMS: isDevelopment ? 2000 : 10000, // Shorter connect timeout in development
           }
         });
-        logger.info('✅ MongoDB connected successfully');
+        logger.info('âœ… MongoDB connected successfully');
       } catch (dbError) {
         if (isDevelopment) {
-          logger.warn('⚠️ MongoDB not available - running in development mode without database');
-          logger.warn('💡 To install MongoDB: https://docs.mongodb.com/manual/installation/');
+          logger.warn('âš ï¸ MongoDB not available - running in development mode without database');
+          logger.warn('ðŸ’¡ To install MongoDB: https://docs.mongodb.com/manual/installation/');
         } else {
           throw dbError;
         }
       }
 
+      // Initialize auth routes with database service (uses in-memory fallback if MongoDB unavailable)
+      initAuthRoutes(this.databaseService);
+
       try {
         await this.redisService.connect();
-        logger.info('✅ Redis connected successfully');
+        logger.info('âœ… Redis connected successfully');
       } catch (redisError) {
         if (isDevelopment) {
-          logger.warn('⚠️ Redis not available - running in development mode without cache');
-          logger.warn('💡 To install Redis: https://redis.io/download');
+          logger.warn('âš ï¸ Redis not available - running in development mode without cache');
+          logger.warn('ðŸ’¡ To install Redis: https://redis.io/download');
         } else {
           throw redisError;
         }
+      }
       }
 
       try {
         await this.neo4jService.connect();
         if (this.neo4jService.isConnected()) {
           await this.neo4jService.createIndexes();
-          logger.info('✅ Neo4j connected successfully');
+          logger.info('âœ… Neo4j connected successfully');
         }
       } catch (neo4jError) {
         if (isDevelopment) {
-          logger.warn('⚠️ Neo4j not available - graph features use in-memory fallback');
-          logger.warn('💡 To start Neo4j: docker compose up -d neo4j');
+          logger.warn('âš ï¸ Neo4j not available - graph features use in-memory fallback');
+          logger.warn('ðŸ’¡ To start Neo4j: docker compose up -d neo4j');
         } else {
           throw neo4jError;
         }
+      }
+      }
       }
 
         // Initialize services after database connection attempts
@@ -566,16 +572,16 @@ class PhantomFlowServer {
 
       // Start the server
       this.server.listen(this.port, () => {
-        logger.info(`🚀 PHANTOM-Flow Defense System started on port ${this.port}`);
-        logger.info(`📊 Dashboard available at http://localhost:${this.port}/api/dashboard`);
-        logger.info(`🔒 Threat detection active`);
-        logger.info(`🎭 Deception layer enabled`);
-        logger.info(`🧠 Adaptive learning system running`);
+        logger.info(`ðŸš€ PHANTOM-Flow Defense System started on port ${this.port}`);
+        logger.info(`ðŸ“Š Dashboard available at http://localhost:${this.port}/api/dashboard`);
+        logger.info(`ðŸ”’ Threat detection active`);
+        logger.info(`ðŸŽ­ Deception layer enabled`);
+        logger.info(`ðŸ§  Adaptive learning system running`);
         
         if (isDevelopment) {
-          logger.info(`🔧 Development mode: Some features may be limited without databases`);
-          logger.info(`📝 Health check: http://localhost:${this.port}/health`);
-          logger.info(`🏠 Server running successfully - Press Ctrl+C to stop`);
+          logger.info(`ðŸ”§ Development mode: Some features may be limited without databases`);
+          logger.info(`ðŸ“ Health check: http://localhost:${this.port}/health`);
+          logger.info(`ðŸ  Server running successfully - Press Ctrl+C to stop`);
         }
       });
 
@@ -593,7 +599,7 @@ class PhantomFlowServer {
    * Graceful shutdown
    */
   private async gracefulShutdown(): Promise<void> {
-    logger.info('🛑 Shutting down PHANTOM-Flow server...');
+    logger.info('ðŸ›‘ Shutting down PHANTOM-Flow server...');
     
     try {
       // Stop adaptive learning service if it exists
@@ -618,7 +624,7 @@ class PhantomFlowServer {
       
       // Close server
       this.server.close(() => {
-        logger.info('✅ PHANTOM-Flow server shutdown complete');
+        logger.info('âœ… PHANTOM-Flow server shutdown complete');
         process.exit(0);
       });
       
@@ -637,3 +643,4 @@ server.start().catch((error) => {
 });
 
 export default server;
+
