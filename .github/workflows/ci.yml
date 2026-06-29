@@ -6,6 +6,10 @@ on:
   push:
     branches: [develop]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_TAG: ${{ github.sha }}
@@ -15,6 +19,7 @@ jobs:
   lint:
     name: Lint & Typecheck
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         service: [backend, frontend]
@@ -35,6 +40,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       matrix:
         service: [backend, go-server, rust-engine, l2-agent]
@@ -89,6 +95,7 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -108,6 +115,7 @@ jobs:
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
         service:

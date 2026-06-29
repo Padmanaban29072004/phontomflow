@@ -12,6 +12,7 @@ jobs:
   trivy-scan:
     name: Trivy Filesystem Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: aquasecurity/trivy-action@0.29.0
@@ -28,6 +29,7 @@ jobs:
   npm-audit:
     name: npm Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     strategy:
       matrix:
         dir: [backend, frontend]
@@ -43,6 +45,7 @@ jobs:
   go-sec:
     name: Go Security Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
@@ -56,6 +59,7 @@ jobs:
   rust-clippy:
     name: Rust Clippy
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
