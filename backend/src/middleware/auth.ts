@@ -48,7 +48,7 @@ export function signToken(user: SafeUser): string {
   };
 
   return jwt.sign(payload, getJwtSecret(), {
-    expiresIn: getJwtExpiration(),
+    expiresIn: getJwtExpiration() as any,
   });
 }
 

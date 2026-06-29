@@ -72,6 +72,9 @@ jobs:
         with:
           version: "v1.29"
 
+      - name: Setup Kustomize
+        uses: fluxcd/pkg-actions/kustomize@main
+
       - name: Configure Kubeconfig
         run: |
           mkdir -p $HOME/.kube
@@ -110,6 +113,9 @@ jobs:
         with:
           version: "v1.29"
 
+      - name: Setup Kustomize
+        uses: fluxcd/pkg-actions/kustomize@main
+
       - name: Configure Kubeconfig
         run: |
           mkdir -p $HOME/.kube
@@ -136,4 +142,4 @@ jobs:
       - name: Post-deploy Health Check
         run: |
           sleep 30
-          curl -f https://phantom-flow.example.com/health || exit 1
+          curl -f https://phantom-flow.example.com/api/health || exit 1

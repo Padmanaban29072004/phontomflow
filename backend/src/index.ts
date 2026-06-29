@@ -540,7 +540,6 @@ class PhantomFlowServer {
           throw redisError;
         }
       }
-      }
 
       try {
         await this.neo4jService.connect();
@@ -555,8 +554,6 @@ class PhantomFlowServer {
         } else {
           throw neo4jError;
         }
-      }
-      }
       }
 
         // Initialize services after database connection attempts
