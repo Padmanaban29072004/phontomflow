@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential gcc && \
     rm -rf /var/lib/apt/lists/*
 COPY ml_service/requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --prefer-binary --user -r requirements.txt
 COPY ml_service/ ./ml_service/
 COPY ml_models/ ./ml_models/
 COPY ai_models/ ./ai_models/
