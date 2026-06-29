@@ -20,7 +20,7 @@ FROM debian:stable-slim AS runner
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates libssl3 libpcap0.8 && \
     rm -rf /var/lib/apt/lists/* && \
-    adduser --system --uid 1001 appuser
+    useradd --system --uid 1001 --create-home appuser
 COPY --from=builder /engine /usr/local/bin/phantom-security-engine
 USER appuser
 EXPOSE 9090 9091

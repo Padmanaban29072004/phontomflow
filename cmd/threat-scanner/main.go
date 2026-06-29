@@ -1,3 +1,5 @@
+//go:build ignore
+
 // PHANTOM-Flow Threat Scanner CLI Tool
 package main
 

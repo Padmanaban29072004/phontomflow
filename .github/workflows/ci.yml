@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
         service: [backend, frontend]
     defaults:
@@ -42,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         service: [backend, go-server, rust-engine, l2-agent]
     steps:
@@ -117,6 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
+      fail-fast: false
       matrix:
         service:
           - backend
