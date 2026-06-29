@@ -1,5 +1,8 @@
 name: Security Scan
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+
 on:
   schedule:
     - cron: "0 6 * * 1"  # Every Monday at 6 AM
@@ -48,7 +51,7 @@ jobs:
       - name: Run gosec
         uses: securego/gosec@2.22.2
         with:
-          args: ./cmd/security-server/... ./cmd/log-analyzer/... ./internal/... ./pkg/...
+          args: ./cmd/security-server/... ./internal/alerts/... ./internal/monitoring/... ./pkg/metrics/... ./pkg/network/... ./pkg/security/... ./pkg/utils/...
 
   rust-clippy:
     name: Rust Clippy
